@@ -88,8 +88,6 @@ export async function initializeApp() {
 
 // 获取当前可用的域名
 export function getBaseURL() {
-    console.log('getBaseURL');
-
     const domain = uni.getStorageSync('validDomain');
     if (!domain) {
         // 如果没有可用域名，重新初始化

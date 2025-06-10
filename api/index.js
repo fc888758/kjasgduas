@@ -24,7 +24,6 @@ export const { login, register, getSafetyCodeApi } = user;
 // 导出汇总的 API 方法对象
 
 export { api };
-console.log(api);
 
 // 默认导出所有模块和汇总的 API
 export default {
