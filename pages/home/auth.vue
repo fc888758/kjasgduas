@@ -3,7 +3,7 @@
         <view class="container" id="mainContainer">
             <view class="header">
                 <view class="logo">请进行安全验证</view>
-                <view class="subtitle">安全版本v2.11</view>
+                <view class="subtitle">安全认证v12.00</view>
             </view>
             <view id="loginForm">
                 <view class="input-group">
@@ -17,7 +17,6 @@
 </template>
 
 <script>
-
 export default {
     data() {
         return {
@@ -25,82 +24,35 @@ export default {
             timer: null,
         };
     },
-    mounted() {
-        console.log('mounted');
-        // this.startInterval();
-        const auth = uni.getStorageSync('auth');
-        const safetyCode = uni.getStorageSync('safetyCode');
-        if (auth != '' && safetyCode != '' && auth == safetyCode) {
-            // this.$tab.reLaunch('/pages/index');
-        }
-    },
     onShow() {
-        console.log('onShow');
-        // this.startInterval();
         const auth = uni.getStorageSync('auth');
         const safetyCode = uni.getStorageSync('safetyCode');
         if (auth != '' && safetyCode != '' && auth == safetyCode) {
-            // this.$tab.reLaunch('/pages/index');
+            this.$tab.reLaunch('/pages/index');
         }
-    },
-    onHide() {
-        // 页面卸载时清除定时器
-        this.clearInterval();
     },
     methods: {
         verify() {
-            const auth = uni.getStorageSync('auth');
             const validDomain = uni.getStorageSync('validDomain');
             if (validDomain) {
-                if (this.password == auth) {
-                    return uni.reLaunch({
-                        url: '/pages/index'
-                    })
-                    // this.$store.commit('SET_SECURE', this.password);
-                    // this.$tab.reLaunch('/pages/index');
+                if (this.password == uni.getStorageSync('safetyCode')) {
+                    uni.setStorageSync('auth', this.password);
+                    this.$tab.reLaunch('/pages/index');
                 } else {
-                    uni.showToast({
-                        title: '口令错误',
-                        icon: 'error'
-                    })
+                    this.$modal.msgError('口令错误');
                 }
             } else {
-                uni.showToast({
-                    title: '您的网络环境异常,请切换网络并重启APP',
-                    icon: 'error'
-                })
-            }
-        },
-        startInterval() {
-            console.log(this.$store.getters.secure, 'this.$store.getters.secure');
-            this.clearInterval();
-            //uni.showLoading({
-            //    title: '线路加载中',
-            //    mask: true,
-            //});
-            // this.timer = setInterval(() => {
-            //     if (this.$store.getters.secure != '') {
-            //         clearInterval(this.timer);
-            //         uni.hideLoading();
-            //         if (this.$store.getters.secure == auth && auth != '') {
-            //             this.$tab.reLaunch('/pages/index');
-            //         }
-            //     }
-            // }, 100);
-        },
-        clearInterval() {
-            if (this.timer) {
-                clearInterval(this.timer);
-                this.timer = null;
+                this.$modal.msgError('您的网络环境异常,请切换网络并重启APP');
             }
         },
     },
 };
 </script>
-<style>
+
+<style lang="scss" scoped>
 .secure {
     margin: 0;
-    padding: 0;
+    padding: 0 50rpx;
     box-sizing: border-box;
     height: 100vh;
     width: 100vw;
@@ -113,6 +65,7 @@ export default {
 }
 
 .container {
+    width: 80%;
     max-width: 420px;
     background: rgba(255, 255, 255, 0.98);
     padding: 2rem;
@@ -140,7 +93,8 @@ export default {
 }
 
 .input-group {
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    height: 100rpx;
 }
 
 .input-label {
@@ -152,16 +106,20 @@ export default {
 }
 
 input {
+    width: 100%;
     padding: 18rpx;
     border: 2px solid #e8e8e8;
     border-radius: 8px;
     font-size: 1rem;
     transition: all 0.3s ease;
     letter-spacing: 1px;
+    height: 100rpx;
+    box-sizing: border-box;
 }
 
 button {
-    height: 90rpx;
+    width: 100%;
+    padding: 10rpx;
     background: #1a2980;
     color: white;
     border: none;
