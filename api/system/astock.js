@@ -6,17 +6,25 @@ const buildUrl = path => `${getBaseURL()}${path}`;
 
 // 股票相关API
 export default {
+    //市场指数
+    getMarketIndexsApi: params =>
+        http.request({
+            url: buildUrl('/api/market/getMarketIndexs'),
+            method: 'get',
+            data: params,
+        }),
+
     stockKlineApi: params =>
         http.request({
             url: buildUrl('/api/market/stockKline'),
             method: 'get',
-            params,
+            data: params,
         }),
     // 获取市场指数数据
     getMarketIndexApi: params =>
         http.request({
             url: buildUrl('/api/market/getMarketIndex'),
             method: 'get',
-            params,
+            data: params,
         }),
 };

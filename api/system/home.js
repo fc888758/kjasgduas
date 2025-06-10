@@ -10,19 +10,19 @@ export default {
         http.request({
             url: buildUrl('/api/market/getNewsList'),
             method: 'get',
-            params,
+            data: params,
         }),
 
     newsContentApi: params =>
         http.request({
             url: buildUrl('/api/market/newsContent'),
             method: 'get',
-            params,
+            data: params,
         }),
     getPopularIndustriesApi: params =>
         http.request({
             url: buildUrl('/api/platform/getPopularIndustries'),
             method: 'get',
-            params,
+            data: params,
         }),
 };

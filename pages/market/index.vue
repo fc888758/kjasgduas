@@ -165,7 +165,6 @@
     import NewStockModule from './components/newStock.vue';
     import AllocationModule from './components/allocation.vue';
     import AcquisitionModule from './components/acquisition.vue';
-    //import { getMarketIndexes } from '@/api/index.js';
 
     export default {
         name: 'Market',
@@ -233,61 +232,8 @@
 
             // 在 loadMarketIndexes 方法中修改API调用
             async loadMarketIndexes() {
-                try {
-                    this.loading = true;
-                    console.log('开始获取市场指数数据...');
-
-                    // 使用新的API方法
-                    const response = await getMarketIndexes();
-                    console.log('API响应:', response);
-
-                    if (response && response.code === 'success' && response.data) {
-                        // 根据API返回的数据结构进行映射
-                        const indexData = response.data;
-
-                        // 假设API返回的数据结构如下，你需要根据实际API调整
-                        this.marketIndexes = [
-                            {
-                                name: '上证指数',
-                                price: indexData.sh_index?.price || '0.00',
-                                change: parseFloat(indexData.sh_index?.change || 0),
-                                changeAmount: indexData.sh_index?.changeAmount || '0.00',
-                            },
-                            {
-                                name: '深证成指',
-                                price: indexData.sz_index?.price || '0.00',
-                                change: parseFloat(indexData.sz_index?.change || 0),
-                                changeAmount: indexData.sz_index?.changeAmount || '0.00',
-                            },
-                            {
-                                name: '创业板指',
-                                price: indexData.cyb_index?.price || '0.00',
-                                change: parseFloat(indexData.cyb_index?.change || 0),
-                                changeAmount: indexData.cyb_index?.changeAmount || '0.00',
-                            },
-                        ];
-
-                        console.log('市场指数数据更新成功:', this.marketIndexes);
-                        uni.showToast({
-                            title: '数据更新成功',
-                            icon: 'success',
-                        });
-                    } else {
-                        console.error('获取市场指数数据失败:', response);
-                        uni.showToast({
-                            title: '获取数据失败',
-                            icon: 'none',
-                        });
-                    }
-                } catch (error) {
-                    console.error('加载市场指数数据出错:', error);
-                    uni.showToast({
-                        title: '网络错误',
-                        icon: 'none',
-                    });
-                } finally {
-                    this.loading = false;
-                }
+                this.marketIndexes = await this.$api.getMarketIndexsApi();
+                console.log(this.marketIndexes);
             },
 
             // 刷新数据

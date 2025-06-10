@@ -36,12 +36,12 @@
                     @click="togglePasswordVisibility"
                 ></image>
             </view>
-            <view class="remember-me">
+            <!--<view class="remember-me">
                 <view class="custom-checkbox" @click="toggleRememberMe">
                     <view class="checkbox-inner" :class="{ checked: loginForm.rememberMe }"></view>
                 </view>
                 <text>记住我</text>
-            </view>
+            </view>-->
             <button class="submit-btn" @click="handleLogin">登录</button>
         </view>
 
@@ -181,10 +181,26 @@
                     this.$modal.showToast('密码长度不能少于6位');
                     return;
                 }
+                this.$modal.loading('登录中...');
 
                 // 实现登录逻辑
-                //console.log('登录表单数据：', this.loginForm);
-                this.$store.dispatch('Login', this.loginForm);
+                this.$api.login(this.loginForm).then(res => {
+                    uni.setStorageSync('App-Token', res.token);
+
+                    // 登录成功后
+                    const pages = getCurrentPages();
+                    const prevPage = uni.getStorageSync('prevPage') || '/pages/index';
+                    console.log('当前页面:', pages.length > 0 ? pages[pages.length - 1].route : '');
+                    this.$modal.closeLoading();
+                    // 如果有上一页，则回退；否则跳转到首页
+                    if (pages.length > 1) {
+                        uni.navigateBack();
+                    } else {
+                        uni.redirectTo({
+                            url: prevPage,
+                        });
+                    }
+                });
             },
             handleRegister() {
                 // 验证用户协议

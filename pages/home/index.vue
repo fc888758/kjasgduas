@@ -291,7 +291,7 @@
                 });
             },
             handleScroll(e) {
-                console.log('scroll event:', e);
+                //console.log('scroll event:', e);
                 if (e.detail) {
                     const scrollTop = e.detail.scrollTop;
                     console.log('scrollTop:', scrollTop);
