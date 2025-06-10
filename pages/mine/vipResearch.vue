@@ -1,0 +1,217 @@
+<template>
+    <view class="vip-research-container">
+        <!-- 顶部导航栏 -->
+        <!--<view class="nav-bar">
+      <view class="left">
+        <image src="/static/icon/back.png" mode="aspectFit" class="back-icon" @click="goBack" />
+      </view>
+      <view class="center">
+        <text>vip调研票</text>
+      </view>
+      <view class="right"></view>
+    </view>-->
+
+        <!-- 表头 -->
+        <view class="table-header">
+            <text class="column name-column">名称/代码</text>
+            <text class="column price-column">当前价</text>
+            <text class="column action-column">操作</text>
+        </view>
+
+        <!-- 股票列表 -->
+        <view class="stock-list">
+            <!-- 股票项 -->
+            <view class="stock-item" v-for="(stock, index) in stockList" :key="index">
+                <view class="name-code-container">
+                    <text class="stock-name">{{ stock.name }}</text>
+                    <view class="stock-code-container">
+                        <text class="market-tag" :class="getMarketClass(stock.market)">{{ stock.market }}</text>
+                        <text class="stock-code">{{ stock.code }}</text>
+                    </view>
+                </view>
+                <text class="current-price">{{ stock.price }}</text>
+                <view class="action-button" @click="buyStock(stock)">
+                    <text>买入</text>
+                </view>
+            </view>
+        </view>
+    </view>
+</template>
+
+<script>
+    export default {
+        data() {
+            return {
+                stockList: [
+                    {
+                        name: '中国联通',
+                        code: '600050',
+                        market: '沪',
+                        price: '5.390',
+                    },
+                    {
+                        name: '御银股份',
+                        code: '002177',
+                        market: '深',
+                        price: '8.220',
+                    },
+                    // 可以根据需要添加更多股票
+                ],
+            };
+        },
+        methods: {
+            goBack() {
+                uni.navigateBack();
+            },
+            getMarketClass(market) {
+                if (market === '沪') {
+                    return 'sh-market';
+                } else if (market === '深') {
+                    return 'sz-market';
+                }
+                return '';
+            },
+            buyStock(stock) {
+                // 处理买入操作，可以跳转到交易页面或弹出交易窗口
+                uni.navigateTo({
+                    url: `/pages/trade/index?code=${stock.code}&name=${stock.name}&market=${stock.market}`,
+                });
+            },
+        },
+    };
+</script>
+
+<style lang="scss" scoped>
+    .vip-research-container {
+        background-color: #f5f5f5;
+        min-height: 100vh;
+    }
+
+    .nav-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 88rpx;
+        background-color: #fff;
+        padding: 0 30rpx;
+        position: relative;
+
+        .left {
+            width: 60rpx;
+
+            .back-icon {
+                width: 40rpx;
+                height: 40rpx;
+            }
+        }
+
+        .center {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 36rpx;
+            font-weight: 500;
+        }
+
+        .right {
+            width: 60rpx;
+        }
+    }
+
+    .table-header {
+        display: flex;
+        background-color: #f5f5f5;
+        padding: 30rpx;
+        border-bottom: 1px solid #eee;
+
+        .column {
+            color: #999;
+            font-size: 28rpx;
+        }
+
+        .name-column {
+            flex: 2;
+        }
+
+        .price-column {
+            flex: 1;
+            text-align: center;
+        }
+
+        .action-column {
+            flex: 1;
+            text-align: center;
+        }
+    }
+
+    .stock-list {
+        background-color: #fff;
+    }
+
+    .stock-item {
+        display: flex;
+        align-items: center;
+        padding: 30rpx;
+        border-bottom: 1px solid #f5f5f5;
+
+        .name-code-container {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+
+            .stock-name {
+                font-size: 32rpx;
+                font-weight: 500;
+                margin-bottom: 10rpx;
+            }
+
+            .stock-code-container {
+                display: flex;
+                align-items: center;
+
+                .market-tag {
+                    font-size: 24rpx;
+                    color: #fff;
+                    padding: 2rpx 8rpx;
+                    border-radius: 4rpx;
+                    margin-right: 10rpx;
+                }
+
+                .sh-market {
+                    background-color: #e74c3c;
+                }
+
+                .sz-market {
+                    background-color: #f39c12;
+                }
+
+                .stock-code {
+                    font-size: 28rpx;
+                    color: #666;
+                }
+            }
+        }
+
+        .current-price {
+            flex: 1;
+            font-size: 32rpx;
+            text-align: center;
+        }
+
+        .action-button {
+            flex: 1;
+            background-color: #f8e3c5;
+            height: 70rpx;
+            border-radius: 35rpx;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            text {
+                color: #d4a45e;
+                font-size: 28rpx;
+            }
+        }
+    }
+</style>

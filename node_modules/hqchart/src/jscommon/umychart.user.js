@@ -1,0 +1,137 @@
+//账户信息
+
+function ZUser(userid)
+{
+    this.SelfStockApiUrl="https://opensource.zealink.com/API/SelfStock";
+    this.LogonApiUrl="https://opensource.zealink.com/API/Logon";
+
+    this.UserID=null;
+    this.NickName=null;
+    this.LogonCallback;
+
+    this.SelfStockData; //自选股信息
+    this.SelfStockCallback=null;
+
+    this.IsWechatApp=false; //是否是小程序模式
+
+    //微信登录
+    this.LogonWechat=function(wechartid,nickname,callback)
+    {
+        this.LogonCallback=callback;
+        this.ReqeustLogon(3,wechartid,nickname)
+    }
+
+    //是否登录了
+    this.IsLogon=function()
+    {
+        return this.UserID!=null;
+    }
+
+    this.ReqeustLogon=function(logonType,userid, password)
+    {
+        var self=this;
+
+        $.ajax({
+            url: this.LogonApiUrl,
+            data:
+            {
+               "logontype":logonType,
+               "user":userid,
+               "password":password,
+               "os":"appweb",
+               "identifiy":Guid(),
+               "ip":"0.0.0.0"
+            },
+            type:"post",
+            dataType: "json",
+            async:true,
+            success: function (data)
+            {
+                self.RecvLogonData(data,RECV_DATA_TYPE.LOGON_DATA);
+            },
+            error:function(request)
+            {
+                self.RecvError(request,RECV_DATA_TYPE.LOGON_DATA);
+            }
+        });
+    }
+
+    this.RecvLogonData=function(data,dataType)
+    {
+        if (data.code!=0) 
+        {
+            if (typeof(this.LogonCallback)=="function") this.LogonCallback(this,data.message);
+            return;
+        }
+
+        this.UserID=data.userid;
+        this.NickName=data.nickname;
+
+        if (typeof(this.LogonCallback)=="function") this.LogonCallback(this);
+    }
+
+    //更新自选股
+    this.UpdateSelfStock=function()
+    {
+        this.ReqeustSelfStock();
+    }
+
+    this.SelfStock=function(callback)
+    {
+        this.SelfStockCallback=callback;
+        this.ReqeustSelfStock();
+    }
+
+    this.ReqeustSelfStock=function()
+    {
+        var self=this;
+
+        $.ajax({
+            url: this.SelfStockApiUrl,
+            data:
+            {
+               "userid":this.UserID,
+            },
+            type:"post",
+            dataType: "json",
+            async:true,
+            success: function (data)
+            {
+                self.RecvSelfStockData(data,RECV_DATA_TYPE.SELF_STOCK_DATA);
+            },
+            error:function(request)
+            {
+                self.RecvError(request,RECV_DATA_TYPE.SELF_STOCK_DATA);
+            }
+        });
+    }
+
+
+    this.RecvSelfStockData=function(data,dataType)
+    {
+        console.log(data);
+
+        this.SelfStockData=[];
+        for(var i in data.selfstock)
+        {
+            var item= data.selfstock[i];
+            var SelfStockItem={ Name:item.name, Data:new Array() };
+            for(var j in item.list)
+            {
+                var stock=item.list[j];
+
+                SelfStockItem.Data.push({Symbol:stock.symbol, Name:stock.name, date:stock.adddate});
+            }
+
+            this.SelfStockData.push(SelfStockItem);
+        }
+
+        if (typeof(this.SelfStockCallback)=="function") this.SelfStockCallback(this);
+    }
+
+    this.RecvError=function(request,dataType)
+    {
+      
+    }
+}
+

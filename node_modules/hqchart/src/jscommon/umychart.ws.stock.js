@@ -1,0 +1,110 @@
+///////////////////////////////////////////////////////////////
+//  Web socket 行情接收类
+//
+
+function JSWSStockResource() 
+{
+  this.Domain = "wss://websocket-test.zealink.com";               //websocket 域名
+}
+
+var g_JSWSStockResource = new JSWSStockResource();
+
+
+function JSWSStock()
+{
+    this.IsConnect=false;   //是否连接
+    this.Url=g_JSWSStockResource.Domain+'/WebSocket/StockAll.ashx';
+    this.Socket;
+
+    this.RecvSnapshotDataCallback;  //快照数据到达
+    this.RecvDetailDataCallback;    //分笔数据到达
+    this.RecvFlowDataCallback;      //资金流数据到达
+
+    this.Total={Snapshot:0, Detail:0, Flow:0 }  //统计一共接收到的数据条数
+
+    //option: { Callback: {Snapshot:, Detail:, Flow:}}
+    this.SetOption=function(option)
+    {
+        if (!Option) return;
+
+        if (option.Callback)
+        {
+            var callback=option.Callback;
+            if (callback.Snapshot) this.RecvSnapshotDataCallback=callback.Snapshot;
+            if (callback.Detail) this.RecvDetailDataCallback=callback.Detail;
+            if (callback.Flow) this.RecvFlowDataCallback=callback.Flow;
+        }
+    }
+
+    this.Create=function(option) 
+    {
+        this.SetOption(option);
+
+        this.Socket=new WebSocket(this.Url);
+        if (!this.Socket) return false;
+
+        console.log(`[JSWSStock::Create] connect=${this.Url}`);
+
+        var self=this;
+        this.Socket.onopen=function(e) { self.OnOpen(e); }; 
+        this.Socket.onmessage=function(e) { self.OnMessage(e)} ;
+        this.Socket.onclose=function(e) { self.OnClose(e); }
+        this.Socket.onerror=function(e) { self.OnError(e); }
+
+        console.log(`[JSWSStock::Create] readyState=${this.Socket.readyState}`);
+
+        return true;
+    }
+
+    this.Close=function()
+    {
+        if (this.Socket) this.Socket.close();
+    }
+
+    this.OnMessage=function(e)
+    {
+        var message=JSON.parse(e.data);
+        if (!message.data || !message.data.data) return;
+        var data=message.data.data;
+        if (data.length<=0) return;
+
+        switch(message.id)
+        {
+            case 20:
+                this.Total.Snapshot+=data.length;
+                if (this.RecvSnapshotDataCallback) this.RecvSnapshotDataCallback(message.data);
+                break;
+            case 10:
+                this.Total.Detail+=data.length;
+                if (this.RecvDetailDataCallback) this.RecvDetailDataCallback(data);
+                break;
+            case 30:
+                this.Total.Flow+=data.length;
+                if (this.RecvFlowDataCallback) this.RecvFlowDataCallback(data);
+                break;
+        }
+    }
+
+    this.OnClose=function(e)
+    {
+        console.log('[JSWSStock::OnClose] e ', e);
+        console.log(`[JSWSStock::OnClose] readyState=${this.Socket.readyState}`);
+    }
+
+    this.OnOpen=function(e)
+    {
+        console.log('[JSWSStock::OnOpen] e ', e);
+        console.log(`[JSWSStock::OnOpen] readyState=${this.Socket.readyState}`);
+    }
+
+    this.OnError=function(e)
+    {
+        console.log('[JSWSStock::OnOpen] e ', e);
+    }
+}
+
+
+JSWSStock.SetDomain = function (domain) 
+{
+    if (domain) g_JSWSStockResource.Domain = domain;
+}

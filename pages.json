@@ -1,0 +1,125 @@
+{
+    "pages": [
+        {
+            "path": "pages/home/auth",
+            "style": {
+                "navigationBarTitleText": "",
+                "navigationBarBackgroundColor": "#ffffff",
+                "navigationStyle": "custom"
+            }
+        },
+        {
+            "path": "pages/index",
+            "style": {
+                "navigationBarTitleText": "首页",
+                "navigationStyle": "custom"
+            }
+        },
+        {
+            "path": "pages/mine/index",
+            "style": {
+                "navigationBarTitleText": "我的",
+                "navigationStyle": "custom"
+            }
+        },
+        {
+            "path": "pages/home/aiTrading",
+            "style": {
+                "navigationBarTitleText": "ai交易",
+                "navigationBarBackgroundColor": "#ffffff"
+            }
+        },
+        {
+            "path": "pages/home/components/inputSearch",
+            "style": {
+                "navigationBarTitleText": "搜索",
+                "navigationStyle": "custom"
+            }
+        },
+        {
+            "path": "pages/market/detail",
+            "style": {
+                "navigationBarTitleText": "详情",
+                "navigationStyle": "custom"
+            }
+        },
+        {
+            "path": "pages/mine/pwd/index",
+            "style": {
+                "navigationBarTitleText": "修改密码",
+                "navigationBarBackgroundColor": "#ffffff"
+            }
+        },
+        {
+            "path": "pages/mine/verify",
+            "style": {
+                "navigationBarTitleText": "实名认证",
+                "navigationBarBackgroundColor": "#ffffff"
+            }
+        },
+        {
+            "path": "pages/mine/login",
+            "style": {
+                "navigationBarTitleText": "登录",
+                "navigationStyle": "custom"
+            }
+        },
+        {
+            "path": "pages/mine/agreement",
+            "style": {
+                "navigationBarTitleText": "用户协议",
+                "navigationBarBackgroundColor": "#ffffff"
+            }
+        },
+        {
+            "path": "pages/mine/financialRecords",
+            "style": {
+                "navigationBarTitleText": "资金记录",
+                "navigationBarBackgroundColor": "rgb(255, 226, 168)"
+            }
+        },
+        {
+            "path": "pages/mine/transactionRecord",
+            "style": {
+                "navigationBarTitleText": "交易记录",
+                "navigationBarBackgroundColor": "#ffffff"
+            }
+        },
+        {
+            "path": "pages/mine/bankCard",
+            "style": {
+                "navigationBarTitleText": "银行卡",
+                "navigationBarBackgroundColor": "#ffffff"
+            }
+        },
+        {
+            "path": "pages/home/newdetail",
+            "style": {
+                "navigationBarTitleText": "新闻详情",
+                "navigationBarBackgroundColor": "#ffffff"
+            }
+        },
+        {
+            "path": "pages/mine/vipResearch",
+            "style": {
+                "navigationBarTitleText": "VIP调研",
+                "navigationBarBackgroundColor": "#ffffff"
+            }
+        }
+    ],
+    "globalStyle": {
+        "navigationBarTextStyle": "black",
+        "navigationBarTitleText": "uni-app",
+        "navigationBarBackgroundColor": "#F8F8F8",
+        "backgroundColor": "#F8F8F8"
+    },
+    "uniIdRouter": {},
+    "easycom": {
+        "autoscan": true,
+        "custom": {
+            "^u--(.*)": "uview-plus/components/u-$1/u-$1.vue",
+            "^up-(.*)": "uview-plus/components/u-$1/u-$1.vue",
+            "^u-([a-z].*)": "uview-plus/components/u-$1/u-$1.vue"
+        }
+    }
+}
