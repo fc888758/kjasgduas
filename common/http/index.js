@@ -39,7 +39,6 @@ class HttpRequest {
 
     // 错误处理
     handleError(error) {
-
         let errMsg = '网络请求失败';
         let errCode = null;
 
@@ -97,7 +96,6 @@ class HttpRequest {
 
     // 创建请求实例
     async request(options) {
-        
         // 检查是否有可用域名
         const baseURL = getBaseURL();
         if (!baseURL) {
@@ -187,7 +185,7 @@ class HttpRequest {
                             if (statusCode === 200) {
                                 if (data.code === 1) {
                                     resolve(data.data);
-                                } else if (statusCode === 401 || data.code == 302) {
+                                } else if (data.code === 401 || data.code == 302) {
                                     // 在跳转到登录页面时记录来源
                                     const prevPage = getCurrentPages()[getCurrentPages().length - 1].route;
                                     uni.setStorageSync('prevPage', prevPage);
