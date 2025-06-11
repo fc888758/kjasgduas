@@ -174,7 +174,7 @@ class HttpRequest {
                     uni.request({
                         ...config,
                         success: response => {
-                            console.log(retryCount > 0 ? '重试请求成功：' : '请求成功：', response);
+                            // console.log(retryCount > 0 ? '重试请求成功：' : '请求成功：', response);
 
                             // 从队列和pending中移除
                             this.pendingRequests.delete(requestKey);
