@@ -8,7 +8,7 @@
         <!-- 欢迎文本 -->
         <view class="welcome-text">
             <text class="greeting">您好，</text>
-            <text class="sub-greeting">欢迎使用浙商汇金</text>
+            <text class="sub-greeting">欢迎使用{{ sundryData.site_name }}</text>
         </view>
 
         <!-- 登录/注册切换 -->
@@ -54,7 +54,7 @@
                 <image :src="showPassword ? '/static/icon/eye-open.png' : '/static/icon/eye-close.png'" mode="aspectFit"
                     class="eye-icon" @click="togglePasswordVisibility"></image>
             </view>
-            <view class="form-item verification-item">
+            <view class="form-item verification-item" v-if="sundryData.is_invite == 1">
                 <input type="text" v-model="registerForm.invite" placeholder="请输入邀请码" class="input-field" />
             </view>
             <button class="submit-btn" @click="handleRegister">注册</button>
@@ -67,9 +67,9 @@
             </view>
             <text class="agreement-text">
                 请阅读并同意用户协议
-                <text class="link" @click="viewTerms">用户协议</text>
+                <text class="link" @click="viewAgreement(1)">用户协议</text>
                 及
-                <text class="link" @click="viewPrivacy">隐私政策</text>
+                <text class="link" @click="viewAgreement(2)">隐私政策</text>
             </text>
         </view>
     </view>
@@ -79,8 +79,12 @@
 import navigationMixin from '@/common/utils/navigation.js';
 export default {
     mixins: [navigationMixin],
+    onShow: function () {
+        this.sundryData = uni.getStorageSync('sundryData')
+    },
     data() {
         return {
+            sundryData: {},
             isLogin: true,
             showPassword: false,
             agreeToTerms: true,
@@ -100,6 +104,7 @@ export default {
             },
         };
     },
+
     methods: {
         goBack() {
             uni.navigateBack();
@@ -252,15 +257,8 @@ export default {
                     console.error('注册错误：', err);
                 });
         },
-        viewTerms() {
-            // 查看用户协议
-            console.log('查看用户协议');
-
-            this.navigateTo('/pages/mine/agreement');
-        },
-        viewPrivacy() {
-            // 查看隐私政策
-            console.log('查看隐私政策');
+        viewAgreement(type) {
+            this.navigateTo('/pages/mine/agreement?type=' + type);
         },
     },
 };

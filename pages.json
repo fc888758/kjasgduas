@@ -67,7 +67,7 @@
         {
             "path": "pages/mine/agreement",
             "style": {
-                "navigationBarTitleText": "用户协议",
+                "navigationBarTitleText": "协议",
                 "navigationBarBackgroundColor": "#ffffff"
             }
         },

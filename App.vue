@@ -12,11 +12,12 @@ export default {
             } else {
                 this.$tab.reLaunch('/pages/home/auth');
             }
+            this.$api.getSundryData().then(res => {
+                uni.setStorageSync('sundryData', res);
+            })
         } else {
             this.$tab.reLaunch('/pages/home/auth');
         }
-
-
     },
     onShow: function () {
         // console.log('App Show2');
