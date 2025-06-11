@@ -26,27 +26,4 @@ export default {
             method: 'post',
             data: params,
         }),
-    logout: params =>
-        http.request({
-            url: buildUrl('api/user/logout'),
-            method: 'post',
-            data: params,
-        }),
-
-    logout: params =>
-        http.request({
-            url: buildUrl('/captchaImage'),
-            method: 'post',
-            data: params,
-
-            timeout: 20000,
-        }),
-    getSafetyCodeApi: params =>
-        http.request({
-            url: buildUrl('/api/platform/getSafetyCode'),
-            method: 'post',
-            data: params,
-
-            timeout: 20000,
-        }),
 };

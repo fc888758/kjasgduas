@@ -77,7 +77,6 @@
 
 <script>
 import navigationMixin from '@/common/utils/navigation.js';
-import { register } from '@/api';
 export default {
     mixins: [navigationMixin],
     data() {
@@ -233,7 +232,7 @@ export default {
             };
 
             // 调用注册API
-            register(params)
+            this.$api.register(params)
                 .then(res => {
                     uni.hideLoading();
                     this.$modal.msgSuccess('注册成功');
