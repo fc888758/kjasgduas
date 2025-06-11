@@ -5,9 +5,11 @@
 			<view class="header">
 				<text class="title">我的</text>
 				<view class="icons">
-					<image class="icon" src="../../static/icon/customer-service-icon.png" mode="aspectFit" @click="information()">
+					<image class="icon" src="../../static/icon/customer-service-icon.png" mode="aspectFit"
+						@click="information()">
 					</image>
-					<image class="icon" src="../../static/icon/notice-icon.png" mode="aspectFit" @click="information()"></image>
+					<image class="icon" src="../../static/icon/notice-icon.png" mode="aspectFit" @click="information()">
+					</image>
 				</view>
 			</view>
 			<view class="user-profile">
@@ -20,7 +22,8 @@
 						<text class="username">{{ maskMobile(userInfo.mobile) }}</text>
 						<image v-if="openClose" class="eye-icon" src="../../static/icon/show-icon.png" mode="aspectFit"
 							@click="showHide"></image>
-						<image v-else class="eye-icon" src="../../static/icon/hide-icon.png" mode="aspectFit" @click="showHide">
+						<image v-else class="eye-icon" src="../../static/icon/hide-icon.png" mode="aspectFit"
+							@click="showHide">
 						</image>
 					</view>
 				</view>

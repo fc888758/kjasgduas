@@ -50,12 +50,8 @@
             <view class="upload-area">
                 <!-- 正面照片上传 -->
                 <view class="upload-item" @click="uploadImage('front')">
-                    <image
-                        v-if="formData.frontImage"
-                        :src="formData.frontImage"
-                        mode="aspectFit"
-                        class="preview-image"
-                    ></image>
+                    <image v-if="formData.frontImage" :src="formData.frontImage" mode="aspectFit" class="preview-image">
+                    </image>
                     <view v-else class="upload-placeholder">
                         <image src="/static/image/auth-idcard.png" mode="aspectFit" class="camera-icon"></image>
                     </view>
@@ -63,12 +59,8 @@
                 </view>
                 <!-- 反面照片上传 -->
                 <view class="upload-item" @click="uploadImage('back')">
-                    <image
-                        v-if="formData.backImage"
-                        :src="formData.backImage"
-                        mode="aspectFit"
-                        class="preview-image"
-                    ></image>
+                    <image v-if="formData.backImage" :src="formData.backImage" mode="aspectFit" class="preview-image">
+                    </image>
                     <view v-else class="upload-placeholder">
                         <image src="/static/image/auth-gh.png" mode="aspectFit" class="camera-icon"></image>
                     </view>
@@ -83,175 +75,177 @@
 </template>
 
 <script>
-    export default {
-        name: 'Verify',
-        data() {
-            return {
-                formData: {
-                    name: '',
-                    idNumber: '',
-                    frontImage: '',
-                    backImage: '',
+export default {
+    name: 'Verify',
+    data() {
+        return {
+            formData: {
+                name: '',
+                idNumber: '',
+                frontImage: '',
+                backImage: '',
+            },
+        };
+    },
+    methods: {
+        goBack() {
+            uni.navigateBack();
+        },
+        uploadImage(type) {
+            uni.chooseImage({
+                count: 1,
+                success: res => {
+                    if (type === 'front') {
+                        this.formData.frontImage = res.tempFilePaths[0];
+                    } else {
+                        this.formData.backImage = res.tempFilePaths[0];
+                    }
                 },
-            };
+            });
         },
-        methods: {
-            goBack() {
-                uni.navigateBack();
-            },
-            uploadImage(type) {
-                uni.chooseImage({
-                    count: 1,
-                    success: res => {
-                        if (type === 'front') {
-                            this.formData.frontImage = res.tempFilePaths[0];
-                        } else {
-                            this.formData.backImage = res.tempFilePaths[0];
-                        }
-                    },
+        submitVerification() {
+            // 表单验证和提交逻辑
+            if (
+                !this.formData.name ||
+                !this.formData.idNumber ||
+                !this.formData.frontImage ||
+                !this.formData.backImage
+            ) {
+                uni.showToast({
+                    title: '请填写完整信息',
+                    icon: 'none',
                 });
-            },
-            submitVerification() {
-                // 表单验证和提交逻辑
-                if (
-                    !this.formData.name ||
-                    !this.formData.idNumber ||
-                    !this.formData.frontImage ||
-                    !this.formData.backImage
-                ) {
-                    uni.showToast({
-                        title: '请填写完整信息',
-                        icon: 'none',
-                    });
-                    return;
-                }
-                // TODO: 调用实名认证接口
-            },
+                return;
+            }
+            console.log(this.formData);
+            
+            // TODO: 调用实名认证接口
         },
-    };
+    },
+};
 </script>
 
 <style lang="scss" scoped>
-    .verify-container {
-        min-height: 100vh;
-        background-color: #f5f5f5;
+.verify-container {
+    min-height: 100vh;
+    background-color: #f5f5f5;
 
-        .nav-bar {
-            display: flex;
-            align-items: center;
-            padding: 60rpx 40rpx 20rpx;
-            background-color: #fff;
+    .nav-bar {
+        display: flex;
+        align-items: center;
+        padding: 60rpx 40rpx 20rpx;
+        background-color: #fff;
 
-            .back-icon {
-                image {
-                    width: 40rpx;
-                    height: 40rpx;
-                }
-            }
-
-            .title {
-                flex: 1;
-                text-align: center;
-                font-size: 32rpx;
-                font-weight: 500;
-                margin-right: 40rpx;
+        .back-icon {
+            image {
+                width: 40rpx;
+                height: 40rpx;
             }
         }
 
-        .verify-form {
-            background-color: #fff;
-            margin-top: 20rpx;
-
-            .form-item {
-                display: flex;
-                align-items: center;
-                padding: 30rpx;
-                border-bottom: 1rpx solid #f5f5f5;
-
-                .label {
-                    width: 140rpx;
-                    font-size: 28rpx;
-                    color: #333;
-                }
-
-                .input-content {
-                    flex: 1;
-                    font-size: 28rpx;
-
-                    input {
-                        width: 100%;
-                    }
-                }
-            }
-        }
-
-        .upload-section {
-            margin-top: 20rpx;
-            padding: 30rpx;
-
-            .upload-title {
-                font-size: 28rpx;
-                color: #333;
-                margin-bottom: 20rpx;
-            }
-
-            .upload-tip {
-                font-size: 24rpx;
-                color: #999;
-                margin-bottom: 30rpx;
-            }
-
-            .upload-area {
-                display: flex;
-                justify-content: space-between;
-
-                .upload-item {
-                    width: 320rpx;
-
-                    .upload-placeholder {
-                        width: 100%;
-                        height: 200rpx;
-                        background-color: #fff;
-                        border: 2rpx dashed #ddd;
-                        border-radius: 8rpx;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-
-                        .camera-icon {
-                            width: 260rpx;
-                            height: 200rpx;
-                        }
-                    }
-
-                    .preview-image {
-                        width: 100%;
-                        height: 200rpx;
-                        border-radius: 8rpx;
-                    }
-
-                    .upload-text {
-                        font-size: 24rpx;
-                        color: #666;
-                        text-align: center;
-                        margin-top: 20rpx;
-                    }
-                }
-            }
-        }
-
-        .submit-btn {
-            position: fixed;
-            bottom: 40rpx;
-            left: 30rpx;
-            right: 30rpx;
-            height: 88rpx;
-            line-height: 88rpx;
+        .title {
+            flex: 1;
             text-align: center;
-            background-color: #e6b088;
-            color: #fff;
             font-size: 32rpx;
-            border-radius: 44rpx;
+            font-weight: 500;
+            margin-right: 40rpx;
         }
     }
+
+    .verify-form {
+        background-color: #fff;
+        margin-top: 20rpx;
+
+        .form-item {
+            display: flex;
+            align-items: center;
+            padding: 30rpx;
+            border-bottom: 1rpx solid #f5f5f5;
+
+            .label {
+                width: 140rpx;
+                font-size: 28rpx;
+                color: #333;
+            }
+
+            .input-content {
+                flex: 1;
+                font-size: 28rpx;
+
+                input {
+                    width: 100%;
+                }
+            }
+        }
+    }
+
+    .upload-section {
+        margin-top: 20rpx;
+        padding: 30rpx;
+
+        .upload-title {
+            font-size: 28rpx;
+            color: #333;
+            margin-bottom: 20rpx;
+        }
+
+        .upload-tip {
+            font-size: 24rpx;
+            color: #999;
+            margin-bottom: 30rpx;
+        }
+
+        .upload-area {
+            display: flex;
+            justify-content: space-between;
+
+            .upload-item {
+                width: 320rpx;
+
+                .upload-placeholder {
+                    width: 100%;
+                    height: 200rpx;
+                    background-color: #fff;
+                    border: 2rpx dashed #ddd;
+                    border-radius: 8rpx;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    .camera-icon {
+                        width: 260rpx;
+                        height: 200rpx;
+                    }
+                }
+
+                .preview-image {
+                    width: 100%;
+                    height: 200rpx;
+                    border-radius: 8rpx;
+                }
+
+                .upload-text {
+                    font-size: 24rpx;
+                    color: #666;
+                    text-align: center;
+                    margin-top: 20rpx;
+                }
+            }
+        }
+    }
+
+    .submit-btn {
+        position: fixed;
+        bottom: 40rpx;
+        left: 30rpx;
+        right: 30rpx;
+        height: 88rpx;
+        line-height: 88rpx;
+        text-align: center;
+        background-color: #e6b088;
+        color: #fff;
+        font-size: 32rpx;
+        border-radius: 44rpx;
+    }
+}
 </style>
