@@ -37,8 +37,64 @@
                                 </view>
                             </view>
                         </view>
+
+                        <view class="stock-indexes">
+                            <swiper
+                                class="index-swiper"
+                                :indicator-dots="true"
+                                :autoplay="true"
+                                :duration="500"
+                                :interval="3000"
+                                indicator-color="rgba(0, 0, 0, .3)"
+                                indicator-active-color="#000000"
+                            >
+                                <swiper-item v-for="(group, groupIndex) in industryGroups" :key="groupIndex">
+                                    <view class="swiper-content">
+                                        <view
+                                            class="index-item"
+                                            v-for="(item, index) in group"
+                                            :key="index"
+                                            :class="{ 'up-bg': item.per_chg > 0, 'down-bg': item.per_chg < 0 }"
+                                        >
+                                            <view class="index-name">{{ item.name }}</view>
+                                            <view
+                                                class="index-value"
+                                                :class="{ up: item.per_chg > 0, down: item.per_chg < 0 }"
+                                            >
+                                                {{ item.current }}
+                                            </view>
+                                            <view
+                                                class="index-change"
+                                                :class="{ up: item.per_chg > 0, down: item.per_chg < 0 }"
+                                            >
+                                                {{ item.chg > 0 ? '+' : '' }}{{ item.chg }} ({{
+                                                    item.per_chg > 0 ? '+' : ''
+                                                }}{{ item.per_chg }}%)
+                                            </view>
+                                        </view>
+                                    </view>
+                                </swiper-item>
+                            </swiper>
+
+                            <!-- 涨跌分布图 -->
+                            <view class="market-distribution">
+                                <view class="market-stats">
+                                    <view>
+                                        上涨<text class="up"> {{ upStocks }}({{ upPercent }}%)</text>
+                                    </view>
+                                    <view>
+                                        下跌<text class="down"> {{ downStocks }}({{ downPercent }}%)</text>
+                                    </view>
+                                </view>
+                                <view class="distribution-bar" :style="{ '--junction-position': upPercent + '%' }">
+                                    <view class="up-bar" :style="{ width: upPercent + '%' }"> </view>
+                                    <view class="middler"></view>
+                                    <view class="down-bar" :style="{ width: downPercent + '%' }"></view>
+                                </view>
+                            </view>
+                        </view>
                         <!-- 上涨下跌统计 -->
-                        <view class="market-distribution">
+                        <!--<view class="market-distribution">
                             <view class="market-stats">
                                 <view>
                                     上涨<text class="up"> {{ upStocks }}({{ upPercent }}%)</text>
@@ -52,7 +108,7 @@
                                 <view class="middler"></view>
                                 <view class="down-bar" :style="{ width: downPercent + '%' }"></view>
                             </view>
-                        </view>
+                        </view>-->
                     </view>
 
                     <!-- 市场概况 -->
