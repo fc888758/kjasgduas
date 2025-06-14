@@ -10,17 +10,17 @@
             </view>
 
             <!-- 配售列表项 -->
-            <view v-if="allocationList.length > 0">
+            <view v-if="allocationList?.length > 0">
                 <view v-for="(item, index) in allocationList" :key="index" class="allocation-item">
                     <view class="name-code-section">
                         <text class="stock-name">{{ item.name }}</text>
                         <view class="stock-code">
-                            <text>配号: {{ item.code }}</text>
-                            <text>上市: {{ item.listingCode }}</text>
+                            <text>配售: {{ item.symbol }}</text>
+                            <text>上市: {{ item.symbol }}</text>
                         </view>
                     </view>
                     <view class="price-section">
-                        <text class="price">{{ item.price }}元</text>
+                        <text class="price">{{ item.allocation_price }}元</text>
                         <text class="price-label">配售价格</text>
                     </view>
                     <view class="operation-section">
@@ -28,11 +28,18 @@
                             <input
                                 type="number"
                                 class="quantity-input"
-                                :placeholder="`输入申购股数最低申购${item.minQuantity}股`"
+                                :placeholder="`最低申购${item.min_buy_number}股`"
                                 v-model="item.inputQuantity"
                             />
                         </view>
-                        <button class="apply-button" @click="applyForStock(item)">申购</button>
+                        <button
+                            class="apply-button"
+                            :class="{ disabled: item.isLoading }"
+                            @click="applyForStock(item, index)"
+                            :disabled="item.isLoading"
+                        >
+                            {{ item.isLoading ? '申购中...' : '申购' }}
+                        </button>
                     </view>
                 </view>
             </view>
@@ -42,6 +49,20 @@
                 <text>暂无数据</text>
             </view>
         </view>
+
+        <!-- 密码弹框 -->
+        <view>
+            <u-popup :show="showPasswordPopup" :round="10" @close="closePasswordPopup" mode="center" :z-index="100">
+                <view class="password-popup">
+                    <view class="password-title">请输入交易密钥</view>
+                    <input type="number" v-model="password" class="password-input" placeholder="请输入交易密钥" />
+                    <view class="password-btns">
+                        <button class="cancel-btn" @click="closePasswordPopup">取消</button>
+                        <button class="confirm-btn" @click="confirmPassword">确认</button>
+                    </view>
+                </view>
+            </u-popup>
+        </view>
     </view>
 </template>
 
@@ -50,43 +71,29 @@
         name: 'AllocationModule',
         data() {
             return {
-                allocationList: [
-                    {
-                        name: '科菲尔',
-                        code: '920066',
-                        listingCode: '920066',
-                        price: '1.00',
-                        minQuantity: '1',
-                        inputQuantity: '',
-                    },
-                    {
-                        name: '紫德科技',
-                        code: '301548',
-                        listingCode: '301548',
-                        price: '98.00',
-                        minQuantity: '500',
-                        inputQuantity: '',
-                    },
-                    {
-                        name: '胜业电气',
-                        code: '920128',
-                        listingCode: '920128',
-                        price: '20.00',
-                        minQuantity: '2',
-                        inputQuantity: '',
-                    },
-                ],
+                allocationList: [],
+                showPasswordPopup: false,
+                password: '',
+                currentApplyItem: null,
             };
         },
         methods: {
             // 获取配售数据
-            fetchAllocationData() {
-                // 这里添加获取配售数据的API调用
-                // 暂时使用模拟数据
-                // this.allocationList = [];
+            async fetchAllocationData() {
+                const r = await this.$api.getMarketQipStocks({ page: 1 });
+                this.allocationList = r.data;
+                // 为每个项目添加加载状态和输入数量字段
+                if (this.allocationList && this.allocationList.length > 0) {
+                    this.allocationList.forEach(item => {
+                        this.$set(item, 'isLoading', false);
+                        this.$set(item, 'inputQuantity', '');
+                    });
+                }
             },
             // 申购股票
-            applyForStock(item) {
+            async applyForStock(item, index) {
+                if (item.isLoading) return; // 如果正在加载中，不执行操作
+
                 if (!item.inputQuantity) {
                     uni.showToast({
                         title: '请输入申购数量',
@@ -96,27 +103,116 @@
                 }
 
                 const quantity = parseInt(item.inputQuantity);
-                if (quantity < parseInt(item.minQuantity)) {
+                if (quantity < parseInt(item.inputQuantity)) {
                     uni.showToast({
-                        title: `最低申购${item.minQuantity}股`,
+                        title: `最低申购${item.min_buy_number}股`,
                         icon: 'none',
                     });
                     return;
                 }
 
-                // 这里添加申购逻辑
-                uni.showLoading({
-                    title: '申购中...',
+                // 设置加载状态
+                this.$set(item, 'isLoading', true);
+
+                // 发起申购请求
+                const r = await this.$api.passwordDetection({ type: 1, id: item.id }); //检测是否要密码
+
+                if (r) {
+                    // 需要密码验证
+                    this.currentApplyItem = item;
+                    this.showPasswordPopup = true;
+                    return;
+                }
+
+                // 不需要密码验证，直接申购
+                this.processApply(item);
+            },
+            // 处理申购逻辑
+            async processApply(item) {
+                // 如果需要密码验证
+                if (this.password) {
+                    //检测密码是否正确
+                    const res = await this.$api.isPasswordCorrect({
+                        password: this.password,
+                        type: 1,
+                        id: item.id,
+                    });
+
+                    if (!res) {
+                        // 密码错误，提示用户
+                        this.$modal.closeLoading();
+                        this.$modal.msgError('交易密钥错误');
+                        // 恢复按钮状态
+                        this.$set(item, 'isLoading', false);
+                        return;
+                    }
+                }
+
+                // 密码正确或不需要密码，继续申购
+                this.closePasswordPopup();
+                this.$modal.loading('申购中...');
+                const { id: qip_id, min_buy_number: number } = item;
+                const params = { qip_id, number };
+
+                // 只有在有密码的情况下才添加 password 字段
+                if (this.password) {
+                    params.password = this.password;
+                }
+
+                this.$api.addPlacementOrder(params).then(res => {
+                    setTimeout(() => {
+                        this.$modal.closeLoading();
+                        this.$modal.msgSuccess('申购成功,等待审核');
+                        item.inputQuantity = '';
+                        // 恢复按钮状态
+                        this.$set(item, 'isLoading', false);
+                    }, 1500);
+                });
+            },
+            // 关闭密码弹窗
+            closePasswordPopup() {
+                this.showPasswordPopup = false;
+                this.password = '';
+                // 如果关闭弹窗，恢复按钮状态
+                if (this.currentApplyItem) {
+                    this.$set(this.currentApplyItem, 'isLoading', false);
+                    this.currentApplyItem = null;
+                }
+            },
+            // 确认密码
+            async confirmPassword() {
+                if (!this.password) {
+                    // 先关闭弹窗，再显示Toast
+                    this.closePasswordPopup();
+                    setTimeout(() => {
+                        uni.showToast({
+                            title: '请输入交易密码',
+                            icon: 'none',
+                        });
+                    }, 100);
+                    return;
+                }
+
+                this.$modal.loading('验证中...');
+
+                //检测密码是否正确
+                const res = await this.$api.isPasswordCorrect({
+                    password: this.password,
+                    type: 1,
+                    id: this.currentApplyItem.id,
                 });
 
-                setTimeout(() => {
-                    uni.hideLoading();
-                    uni.showToast({
-                        title: '申购成功',
-                        icon: 'success',
-                    });
-                    item.inputQuantity = '';
-                }, 1500);
+                if (res) {
+                    // 密码正确，继续申购
+                    this.processApply(this.currentApplyItem);
+                } else {
+                    setTimeout(() => {
+                        this.$modal.closeLoading();
+                        this.$modal.msgError('交易密钥错误');
+                    }, 100);
+                    // 恢复按钮状态
+                    this.$set(this.currentApplyItem, 'isLoading', false);
+                }
             },
         },
         mounted() {
@@ -128,19 +224,18 @@
 <style lang="scss" scoped>
     .allocation-container {
         background-color: #fff;
-        min-height: 100vh;
 
         .allocation-list {
-            padding: 0 15px;
+            padding: 0 30rpx;
 
             .table-header {
                 display: flex;
                 justify-content: space-between;
-                padding: 15px 0;
+                padding: 30rpx 0;
                 border-bottom: 1px solid #f0f0f0;
 
                 .header-cell {
-                    font-size: 14px;
+                    font-size: 24rpx;
                     color: #999;
 
                     &.name-code {
@@ -154,7 +249,7 @@
                     }
 
                     &.operation {
-                        flex: 1;
+                        flex: 1.5;
                         text-align: right;
                     }
                 }
@@ -164,28 +259,28 @@
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                padding: 15px 0;
+                padding: 30rpx 0;
                 border-bottom: 1px solid #f0f0f0;
 
                 .name-code-section {
                     flex: 2;
 
                     .stock-name {
-                        font-size: 16px;
-                        font-weight: 500;
+                        font-size: 28rpx;
+                        font-weight: bold;
                         color: #333;
-                        margin-bottom: 5px;
+                        margin-bottom: 10rpx;
                         display: block;
                     }
 
                     .stock-code {
-                        font-size: 12px;
+                        font-size: 20rpx;
                         color: #999;
                         display: flex;
                         flex-direction: column;
 
                         text {
-                            margin-bottom: 2px;
+                            margin-bottom: 4rpx;
                         }
                     }
                 }
@@ -197,50 +292,60 @@
                     flex-direction: column;
 
                     .price {
-                        font-size: 16px;
+                        font-size: 32rpx;
                         font-weight: 500;
                         color: #e4393c;
                     }
 
                     .price-label {
-                        font-size: 12px;
+                        font-size: 20rpx;
                         color: #999;
-                        margin-top: 5px;
+                        margin-top: 10rpx;
                     }
                 }
 
                 .operation-section {
-                    flex: 1;
+                    flex: 1.5;
                     display: flex;
                     flex-direction: column;
                     align-items: flex-end;
 
                     .input-container {
                         width: 100%;
-                        margin-bottom: 10px;
+                        margin-bottom: 20rpx;
 
                         .quantity-input {
                             width: 100%;
-                            height: 36px;
+                            height: 60rpx;
+                            line-height: 60rpx;
                             border: 1px solid #ddd;
-                            border-radius: 4px;
-                            padding: 0 10px;
-                            font-size: 12px;
+                            border-radius: 8rpx;
+                            padding: 0 20rpx;
+                            font-size: 24rpx;
                             box-sizing: border-box;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            white-space: nowrap;
                         }
                     }
 
                     .apply-button {
                         width: 100%;
-                        height: 36px;
+                        height: 60rpx;
                         background-color: #cc923d;
                         color: #fff;
-                        border-radius: 4px;
-                        font-size: 14px;
+                        border-radius: 8rpx;
+                        font-size: 24rpx;
                         display: flex;
                         align-items: center;
                         justify-content: center;
                         padding: 0;
+                        transition: all 0.3s;
+
+                        &.disabled {
+                            background-color: #ccc;
+                            cursor: not-allowed;
+                        }
                     }
                 }
             }
@@ -249,9 +354,62 @@
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                height: 300px;
+                height: 200rpx;
                 color: #999;
-                font-size: 14px;
+                font-size: 28rpx;
+            }
+        }
+
+        // 密码弹窗样式
+        .password-popup {
+            width: 280px;
+            background-color: #fff;
+            border-radius: 16rpx;
+            padding: 40rpx;
+
+            .password-title {
+                font-size: 32rpx;
+                font-weight: 500;
+                color: #333;
+                text-align: center;
+                margin-bottom: 40rpx;
+            }
+
+            .password-input {
+                width: 100%;
+                height: 70rpx;
+                border: 1px solid #ddd;
+                border-radius: 8rpx;
+                font-size: 28rpx;
+                margin-bottom: 40rpx;
+                box-sizing: border-box;
+                padding-left: 10rpx;
+                box-sizing: border-box;
+            }
+
+            .password-btns {
+                display: flex;
+                justify-content: space-between;
+
+                button {
+                    flex: 1;
+                    height: 70rpx;
+                    line-height: 70rpx;
+                    border-radius: 8rpx;
+                    font-size: 28rpx;
+                    border: none;
+
+                    &.cancel-btn {
+                        background-color: #f5f5f5;
+                        color: #666;
+                        margin-right: 20rpx;
+                    }
+
+                    &.confirm-btn {
+                        background-color: #cc923d;
+                        color: #fff;
+                    }
+                }
             }
         }
     }

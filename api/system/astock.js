@@ -99,10 +99,31 @@ export default {
             method: 'get',
             data: params,
         }),
+    // 检测密码通密码是否正确
+    isPasswordCorrect: params =>
+        http.request({
+            url: buildUrl('/api/platform/isPasswordCorrect'),
+            method: 'get',
+            data: params,
+        }),
     // 普通下单
     addOrdinaryOrder: params =>
         http.request({
             url: buildUrl('/api/market/addOrdinaryOrder'),
+            method: 'post',
+            data: params,
+        }),
+    // 配售列表
+    getMarketQipStocks: params =>
+        http.request({
+            url: buildUrl('/api/market/getMarketQipStocks'),
+            method: 'get',
+            data: params,
+        }),
+    // 配售下单
+    addPlacementOrder: params =>
+        http.request({
+            url: buildUrl('/api/market/addPlacementOrder'),
             method: 'post',
             data: params,
         }),
