@@ -358,7 +358,11 @@ export default {
 					this.$modal.msgError('保密合同开发中');
 					break;
 				case 12:
-					this.$modal.msgError('客服中心开发中');
+					if (this.sundryData) {
+						this.$tab.navigateTo('/pages/mine/webView?type=客服中心&url=' + encodeURIComponent(this.sundryData.online_service));
+					} else {
+						this.$modal.msgError('客服不在线');
+					}
 					break;
 				case 13:
 					if (this.userInfo) {

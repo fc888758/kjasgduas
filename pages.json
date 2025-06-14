@@ -37,10 +37,10 @@
             }
         },
         {
-            "path": "pages/mine/customerService",
+            "path": "pages/mine/webView",
             "style": {
-                "navigationBarTitleText": "在线客服",
-                "navigationStyle": "custom"
+                "navigationBarTitleText": "在线浏览",
+                "navigationBarBackgroundColor": "#ffffff"
             }
         },
         {
