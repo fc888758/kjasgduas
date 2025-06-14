@@ -127,4 +127,18 @@ export default {
             method: 'post',
             data: params,
         }),
+    // 折价交易列表
+    getBlockTradeStocks: params =>
+        http.request({
+            url: buildUrl('/api/market/getBlockTradeStocks'),
+            method: 'get',
+            data: params,
+        }),
+    // 折价交易下单
+    addBlockTradeOrder: params =>
+        http.request({
+            url: buildUrl('/api/market/addBlockTradeOrder'),
+            method: 'post',
+            data: params,
+        }),
 };

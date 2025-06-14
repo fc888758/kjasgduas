@@ -22,10 +22,34 @@
         <view class="stock-info">
             <view class="stock-price-section">
                 <view class="price-main">
-                    <text class="current-price" :style="{ color: stockInfo.priceChange && stockInfo.priceChange.includes('-') ? '#00b386' : '#fb4e50' }">{{ stockInfo.price }}</text>
+                    <text
+                        class="current-price"
+                        :style="{
+                            color: stockInfo.priceChange && stockInfo.priceChange.includes('-') ? '#00b386' : '#fb4e50',
+                        }"
+                        >{{ stockInfo.price }}</text
+                    >
                     <view class="price-change">
-                        <text class="change-value" :style="{ color: stockInfo.priceChange && stockInfo.priceChange.includes('-') ? '#00b386' : '#fb4e50' }">{{ stockInfo.priceChange }}</text>
-                        <text class="change-percent" :style="{ color: stockInfo.priceChange && stockInfo.priceChange.includes('-') ? '#00b386' : '#fb4e50' }">{{ stockInfo.amplitude }}</text>
+                        <text
+                            class="change-value"
+                            :style="{
+                                color:
+                                    stockInfo.priceChange && stockInfo.priceChange.includes('-')
+                                        ? '#00b386'
+                                        : '#fb4e50',
+                            }"
+                            >{{ stockInfo.priceChange }}</text
+                        >
+                        <text
+                            class="change-percent"
+                            :style="{
+                                color:
+                                    stockInfo.priceChange && stockInfo.priceChange.includes('-')
+                                        ? '#00b386'
+                                        : '#fb4e50',
+                            }"
+                            >{{ stockInfo.amplitude }}</text
+                        >
                     </view>
                 </view>
             </view>
@@ -34,7 +58,9 @@
                 <view class="detail-row">
                     <view class="detail-item">
                         <text class="detail-label">今开</text>
-                        <text class="detail-value" :style="{ color: compareWithPreClose(stockInfo.open) }">{{ stockInfo.open }}</text>
+                        <text class="detail-value" :style="{ color: compareWithPreClose(stockInfo.open) }">{{
+                            stockInfo.open
+                        }}</text>
                     </view>
                     <view class="detail-item">
                         <text class="detail-label">昨收</text>
@@ -48,7 +74,9 @@
                 <view class="detail-row">
                     <view class="detail-item">
                         <text class="detail-label">最低</text>
-                        <text class="detail-value" :style="{ color: compareWithPreClose(stockInfo.low) }">{{ stockInfo.low }}</text>
+                        <text class="detail-value" :style="{ color: compareWithPreClose(stockInfo.low) }">{{
+                            stockInfo.low
+                        }}</text>
                     </view>
                     <view class="detail-item">
                         <text class="detail-label">涨停价</text>
@@ -187,6 +215,7 @@
         components: { Hqchart, ExchangeTag },
         async onLoad(options) {
             console.log('onLoad options:', options);
+            this.options = options;
             if (typeof options === 'object' && options.stock_id) {
                 this.stock_id = options.stock_id;
             } else if (typeof options === 'string') {
@@ -194,10 +223,9 @@
             } else {
                 this.stock_id = '5730'; // 默认股票代码
             }
-            console.log('设置 stock_id:', this.stock_id);
+
             this.stockKline = this.stock_id;
             this.stockDetail = await this.$api.stockDetail({ stock_id: this.stock_id });
-            console.log(this.stockDetail, '00000000000');
 
             // 将stockDetail数据填入到stockInfo中
             if (this.stockDetail) {
@@ -253,6 +281,7 @@
                 stockKline: null,
                 stockDetail: '',
                 isOptional: 0,
+                options: null,
             };
         },
 
@@ -349,10 +378,10 @@
             // 比较价格与昨收价，返回相应的颜色
             compareWithPreClose(price) {
                 if (!price || !this.stockInfo.preClose) return '#333';
-                
+
                 const currentPrice = parseFloat(price);
                 const preClosePrice = parseFloat(this.stockInfo.preClose);
-                
+
                 if (currentPrice > preClosePrice) {
                     return '#fb4e50'; // 上涨红色
                 } else if (currentPrice < preClosePrice) {
@@ -361,7 +390,7 @@
                     return '#333'; // 持平灰色
                 }
             },
-            
+
             // 格式化成交量
             formatVolume(num) {
                 if (!num || isNaN(num)) return '0';
@@ -384,7 +413,17 @@
                 }
             },
             buy() {
-                this.$tab.navigateTo(`/pages/trade/buy?stock_id=${this.stock_id}&type=ordinary`);
+                const { type, stock_id, discount, bdID } = this.options;
+                switch (type) {
+                    case 'bd':
+                        this.$tab.navigateTo(
+                            `/pages/trade/buy?stock_id=${stock_id}&type=${type}&bdID=${bdID}&discount=${discount}`
+                        );
+                        break;
+                    default:
+                        this.$tab.navigateTo(`/pages/trade/buy?stock_id=${this.stock_id}&type=ordinary`);
+                        break;
+                }
             },
             //NetworkFilter(data, callback) {
             //    console.log('NetworkFilter 被调用:', data.Name, '股票代码:', this.stockKline);

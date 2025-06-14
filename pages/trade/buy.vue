@@ -32,6 +32,10 @@
                     <label>现价</label>
                     <text>¥ {{ stockDetail.current }}</text>
                 </view>
+                <view>
+                    <label>折扣价</label>
+                    <text>¥ {{ stockDetail.current * (options.discount / 10).toFixed(2) }}</text>
+                </view>
             </view>
             <!-- 价格输入区 -->
             <view class="price-input-container">
@@ -248,6 +252,20 @@
                 </view>
             </view>
         </u-popup>
+
+        <!-- 密码弹框 -->
+        <view>
+            <u-popup :show="showPasswordPopup" :round="10" @close="closePasswordPopup" mode="center" :z-index="100">
+                <view class="password-popup">
+                    <view class="password-title">请输入交易密钥</view>
+                    <input type="text" v-model="password" class="password-input" placeholder="请输入交易密钥" />
+                    <view class="password-btns">
+                        <button class="cancel-btn" @click="closePasswordPopup">取消</button>
+                        <button class="confirm-btn" @click="confirmPassword">确认</button>
+                    </view>
+                </view>
+            </u-popup>
+        </view>
     </view>
 </template>
 
@@ -299,6 +317,9 @@
                 type: null,
                 show: false,
                 stockId: null, // 股票ID
+                password: null,
+                showPasswordPopup: false, // 控制密码弹框显示
+                passwordOrderParams: null, // 存储需要密码确认的订单参数
             };
         },
         computed: {
@@ -426,9 +447,12 @@
             },
         },
         onLoad(options) {
+            console.log(options);
+
             if (options && options.stock_id) {
                 this.stockId = options.stock_id;
                 this.type = options.type;
+                this.discountRate = options.discount;
                 this.init();
             }
         },
@@ -510,7 +534,7 @@
                         this.quantity = 0; // 最小为1手（100股）
                     }
                 }
-                // 重置比例选择状态，确保maxBuyableLots正确计算
+                // 重置比例选择状态
                 this.activeRatio = '';
                 // 调用数量变化方法更新交易信息
                 this.onQuantityChange();
@@ -522,7 +546,7 @@
                 } else {
                     this.quantity = parseInt(this.quantity) + 1;
                 }
-                // 重置比例选择状态，确保maxBuyableLots正确计算
+                // 重置比例选择状态
                 this.activeRatio = '';
                 // 调用数量变化方法更新交易信息
                 this.onQuantityChange();
@@ -535,8 +559,6 @@
                 }
 
                 // 在数量变化时，计算属性会自动更新
-                // 但我们可以在这里添加其他需要的逻辑
-                // 例如，检查是否超过可用余额
                 if (parseFloat(this.paymentAmount) > parseFloat(this.availableBalance)) {
                     uni.showToast({
                         title: '超出可用余额',
@@ -629,10 +651,6 @@
             },
 
             async confirmOrder() {
-                if (this.type != 'ordinary') {
-                    const r = await this.$api.passwordDetection(); //检测是否要密码
-                }
-
                 if (parseFloat(this.paymentAmount) > parseFloat(this.availableBalance)) {
                     uni.showToast({
                         title: '可用余额不足',
@@ -644,11 +662,125 @@
                 this.$modal.loading('提交中...');
                 this.show = false; // 关闭弹窗
 
+                switch (this.type) {
+                    case 'bd': // 要约购
+                        const r = await this.$api.passwordDetection({ type: 3, id: this.options.bdID }); //检测是否要密码
+                        const orderParams = {
+                            bd_id: this.options.bdID,
+                            number: this.quantity * 100,
+                        };
+
+                        // 检查是否需要密码
+                        if (r) {
+                            // 需要密码，显示密码弹框
+                            this.passwordOrderParams = orderParams;
+                            this.showPasswordPopup = true;
+                            this.$modal.closeLoading();
+                        } else {
+                            // 不需要密码，直接提交订单
+                            this.submitBlockTradeOrder(orderParams);
+                        }
+                        break;
+
+                    default: // 普通下单
+                        const ordinaryParams = {
+                            stock_id: this.stockId,
+                            number: this.quantity * 100,
+                        };
+
+                        // 普通下单不需要密码，直接提交订单
+                        this.submitOrdinaryOrder(ordinaryParams);
+                }
+            },
+
+            // 关闭密码弹框
+            closePasswordPopup() {
+                this.showPasswordPopup = false;
+                this.password = null;
+                this.passwordOrderParams = null;
+                this.$modal.closeLoading();
+            },
+
+            // 确认密码
+            async confirmPassword() {
+                if (!this.password) {
+                    uni.showToast({
+                        title: '请输入交易密钥',
+                        icon: 'none',
+                    });
+                    return;
+                }
+
+                this.$modal.loading('验证中...');
+
+                try {
+                    // 验证密码是否正确
+                    const result = await this.$api.isPasswordCorrect({
+                        password: this.password,
+                        type: 3,
+                        id: this.options.bdID,
+                    });
+
+                    if (result) {
+                        // 密码正确，提交订单
+                        if (this.type === 'bd' && this.passwordOrderParams) {
+                            // 提交要约收购订单
+                            this.submitBlockTradeOrder(this.passwordOrderParams, this.password);
+                        } else {
+                            // 提交普通订单
+                            this.submitOrdinaryOrder(this.passwordOrderParams, this.password);
+                        }
+                        // 关闭密码弹框
+                        this.closePasswordPopup();
+                    } else {
+                        this.$modal.closeLoading();
+                        this.$modal.msgError('交易密钥错误');
+                    }
+                } catch (error) {
+                    this.$modal.closeLoading();
+                    this.$modal.msgError(error.message || '验证失败');
+                }
+            },
+
+            // 提交要约收购订单
+            submitBlockTradeOrder(params, password = null) {
+                // 如果有密码，添加到参数中
+                if (password) {
+                    params.password = password;
+                }
+
+                this.$modal.loading('提交中...');
+
                 this.$api
-                    .addOrdinaryOrder({
-                        stock_id: this.stockId,
-                        number: this.quantity * 100,
+                    .addBlockTradeOrder(params)
+                    .then(res => {
+                        this.show = false; // 关闭弹窗
+                        this.$modal.msgSuccess('买入成功');
+                        // 更新用户余额
+                        this.getUserInfo();
+
+                        // 延迟返回
+                        setTimeout(() => {
+                            uni.navigateBack();
+                        }, 1500);
                     })
+                    .catch(error => {
+                        this.$modal.closeLoading();
+                        this.$modal.msgError(error.message);
+                    });
+            },
+
+            // 提交普通订单
+            submitOrdinaryOrder(params, password = null) {
+                // 如果有密码，添加到参数中
+                if (password) {
+                    params.password = password;
+                }
+
+                this.$modal.loading('提交中...');
+
+                this.$api
+                    .addOrdinaryOrder(params)
                     .then(res => {
                         this.show = false; // 关闭弹窗
                         this.$modal.msgSuccess('买入成功');
@@ -1143,6 +1275,112 @@
                 background: linear-gradient(180deg, #ffd177, #cc923d);
                 color: #fff;
                 font-weight: bold;
+            }
+        }
+
+        // 密码弹窗样式
+        .password-popup {
+            width: 280px;
+            background-color: #fff;
+            border-radius: 16rpx;
+            padding: 40rpx;
+
+            .password-title {
+                font-size: 32rpx;
+                font-weight: 500;
+                color: #333;
+                text-align: center;
+                margin-bottom: 40rpx;
+            }
+
+            .password-input {
+                width: 100%;
+                height: 70rpx;
+                border: 1px solid #ddd;
+                border-radius: 8rpx;
+                font-size: 28rpx;
+                margin-bottom: 40rpx;
+                box-sizing: border-box;
+                padding-left: 10rpx;
+                box-sizing: border-box;
+            }
+
+            .password-btns {
+                display: flex;
+                justify-content: space-between;
+
+                button {
+                    flex: 1;
+                    height: 70rpx;
+                    line-height: 70rpx;
+                    border-radius: 8rpx;
+                    font-size: 28rpx;
+                    border: none;
+
+                    &.cancel-btn {
+                        background-color: #f5f5f5;
+                        color: #666;
+                        margin-right: 20rpx;
+                    }
+
+                    &.confirm-btn {
+                        background-color: #cc923d;
+                        color: #fff;
+                    }
+                }
+            }
+        }
+    }
+
+    // 密码弹窗样式
+    .password-popup {
+        width: 280px;
+        background-color: #fff;
+        border-radius: 16rpx;
+        padding: 40rpx;
+
+        .password-title {
+            font-size: 32rpx;
+            font-weight: 500;
+            color: #333;
+            text-align: center;
+            margin-bottom: 40rpx;
+        }
+
+        .password-input {
+            width: 100%;
+            height: 70rpx;
+            border: 1px solid #ddd;
+            border-radius: 8rpx;
+            font-size: 28rpx;
+            margin-bottom: 40rpx;
+            box-sizing: border-box;
+            padding-left: 10rpx;
+            box-sizing: border-box;
+        }
+
+        .password-btns {
+            display: flex;
+            justify-content: space-between;
+
+            button {
+                flex: 1;
+                height: 70rpx;
+                line-height: 70rpx;
+                border-radius: 8rpx;
+                font-size: 28rpx;
+                border: none;
+
+                &.cancel-btn {
+                    background-color: #f5f5f5;
+                    color: #666;
+                    margin-right: 20rpx;
+                }
+
+                &.confirm-btn {
+                    background-color: #cc923d;
+                    color: #fff;
+                }
             }
         }
     }

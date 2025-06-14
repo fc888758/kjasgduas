@@ -6,7 +6,7 @@
             <view class="table-header">
                 <text class="header-cell name-code">名称/代码</text>
                 <text class="header-cell current-price">当前价</text>
-                <text class="header-cell total-amount">总份额</text>
+                <text class="header-cell total-amount">折扣价</text>
                 <text class="header-cell operation">操作</text>
             </view>
 
@@ -16,12 +16,12 @@
                     <view class="name-code-cell">
                         <text class="stock-name">{{ item.name }}</text>
                         <view class="stock-code">
-                            <exchange-tag class="tag" :exchange="`京`"></exchange-tag>
-                            <text>{{ item.code }}</text>
+                            <exchange-tag class="tag" :exchange="item.exchange"></exchange-tag>
+                            <text>{{ item.symbol }}</text>
                         </view>
                     </view>
-                    <text class="current-price-cell">{{ item.price }}</text>
-                    <text class="total-amount-cell">{{ item.totalAmount }}</text>
+                    <text class="current-price-cell">{{ item.current }}</text>
+                    <text class="total-amount-cell">{{ discountPrice(item) }}</text>
                     <view class="operation-cell">
                         <view class="buy-btn" @click="handleBuy(item)">
                             <text>买入</text>
@@ -57,14 +57,28 @@
                 ],
             };
         },
+        computed: {
+            discountPrice() {
+                return item => {
+                    if (!item || !item.current || !item.discount) {
+                        return '0.00';
+                    }
+                    return (parseFloat(item.current) * (item.discount / 10)).toFixed(2);
+                };
+            },
+        },
         methods: {
             // 获取要约收购数据
-            fetchAcquisitionData() {
-                // 这里添加获取要约收购数据的API调用
-                // 暂时使用模拟数据
+            async fetchAcquisitionData() {
+                const r = await this.$api.getBlockTradeStocks({ page: 1 });
+                this.acquisitionList = r.data;
+                console.log(r);
             },
             // 处理买入操作
             handleBuy(item) {
+                this.$tab.navigateTo(
+                    `/pages/market/detail?type=bd&stock_id=${item.market_symbols_id}&bdID=${item.id}&discount=${item.discount}`
+                );
                 console.log('买入', item);
                 // 这里添加买入逻辑
             },
@@ -173,13 +187,15 @@
                         .buy-btn {
                             background: linear-gradient(to right, #f0c78a, #e5a757);
                             border-radius: 20px;
-                            padding: 8rpx 20rpx;
-                            width: 120rpx;
+                            padding: 8rpx 0;
+                            width: 100%;
+                            height: 60rpx;
                             text-align: center;
+                            box-sizing: border-box;
 
                             text {
                                 color: #fff;
-                                font-size: 14px;
+                                font-size: 24rpx;
                             }
                         }
                     }
