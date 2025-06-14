@@ -71,8 +71,8 @@
                         </view>
                     </view>
                     <view class="pagination-container">
-                        <u-pagination :current-page="currentPage" :total="total" layout="prev, pager, next"
-                            @current-change="performSearch" />
+                        <u-pagination :current-page="currentPage" :page-size="pageSize" :total="total"
+                            layout="prev, pager, next" @current-change="performSearch" />
                     </view>
                 </view>
 
@@ -101,6 +101,7 @@ export default {
         return {
             total: 0,
             timer: null,
+            pageSize: 10,
             currentPage: 1,
             searchKeyword: '',
             searchHistory: [],
@@ -113,7 +114,7 @@ export default {
         this.getGlamourStocks();
     },
     onShow() {
-        this.onSearch(this.currentPage);
+        this.onSearch();
     },
     onHide() {
         this.clearTimer();
@@ -139,34 +140,39 @@ export default {
 
         // 执行搜索逻辑
         performSearch(page = 1) {
-            console.log(page);
-            
-            this.clearTimer();
             // 显示加载状态
             this.$modal.loading('加载中...');
+            this.getMarketStocks(page);
+            this.clearTimer();
             this.timer = setInterval(() => {
-                this.$api.getMarketStocks({ page, keyword: this.searchKeyword }).then(res => {
-                    this.$modal.closeLoading();
-                    if (res.total > 0) {
-                        this.total = res.total
-                        this.currentPage = res.current_page
-                        // 将API返回的结果格式化并赋值给searchResults
-                        this.searchResults = res.data.map(item => ({
-                            id: item.id || '',
-                            name: item.name || '',
-                            code: item.symbol || item.code || '',
-                            price: item.price || item.current || '0.00',
-                            change: item.change || item.chg || 0,
-                            exchange: item.exchange,
-                        }));
-                        this.addToHistory(this.searchKeyword);
-                    } else {
-                        this.clearSearch();
-                        this.$modal.msg('暂无结果');
-                    }
-                });
+                this.getMarketStocks(page);
             }, 3000);
-            
+            // 
+
+        },
+        // 请求搜索数据
+        async getMarketStocks(page = 1) {
+            await this.$api.getMarketStocks({ page, keyword: this.searchKeyword }).then(res => {
+                if (res.total > 0) {
+                    this.total = res.total
+                    this.pageSize = res.per_page;
+                    this.currentPage = res.current_page
+                    // 将API返回的结果格式化并赋值给searchResults
+                    this.searchResults = res.data.map(item => ({
+                        id: item.id || '',
+                        name: item.name || '',
+                        code: item.symbol || item.code || '',
+                        price: item.price || item.current || '0.00',
+                        change: item.change || item.chg || 0,
+                        exchange: item.exchange,
+                    }));
+                    this.addToHistory(this.searchKeyword);
+                } else {
+                    this.clearSearch();
+                    this.$modal.msg('暂无结果');
+                }
+            });
+            this.$modal.closeLoading();
         },
 
         // 清除搜索请求
@@ -184,6 +190,7 @@ export default {
                 this.timer = null;
             }
         },
+
         // 选择历史记录
         selectHistory(item) {
             this.searchKeyword = item;
