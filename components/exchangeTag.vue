@@ -19,8 +19,6 @@
                         return 'hu-sh';
                     case '深':
                         return 'hu-sz';
-                    case '北':
-                        return 'hu-bj';
                     case '京':
                         return 'hu-bj';
                     default:

@@ -190,7 +190,7 @@ export default {
         handleFunctionClick(type, data = null) {
             switch (type) {
                 case 1:
-                    this.$tab.navigateTo('/pages/home/components/inputSearch');
+                    this.$tab.navigateTo('/pages/home/inputSearch');
                     break;
                 case 2:
                     if (!this.userInfo) {
