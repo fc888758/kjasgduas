@@ -112,10 +112,6 @@
         methods: {
             handleTabChange(tab) {
                 this.currentTab = tab;
-                // 如果切换到行情页面，将 marketCurrent 设置为 0
-                if (tab === 'market') {
-                    uni.setStorageSync('marketCurrent', 0);
-                }
                 this.$tab.navigateTo('/pages/' + this.currentTab + '/index');
             },
             // 监听客服按钮移动
