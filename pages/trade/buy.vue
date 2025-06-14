@@ -32,9 +32,9 @@
                     <label>现价</label>
                     <text>¥ {{ stockDetail.current }}</text>
                 </view>
-                <view>
+                <view v-if="options.discount">
                     <label>折扣价</label>
-                    <text>¥ {{ stockDetail.current * (options.discount / 10).toFixed(2) }}</text>
+                    <text>¥ {{ (stockDetail.current * (options.discount / 10)).toFixed(2) }}</text>
                 </view>
             </view>
             <!-- 价格输入区 -->
@@ -558,6 +558,9 @@
                     this.quantity += 1;
                 }
 
+                // 强制更新计算属性
+                this.$forceUpdate();
+
                 // 在数量变化时，计算属性会自动更新
                 if (parseFloat(this.paymentAmount) > parseFloat(this.availableBalance)) {
                     uni.showToast({
@@ -569,46 +572,54 @@
             },
             // 选择比例
             selectRatio(ratio) {
-                this.activeRatio = ratio;
+                this.$nextTick(() => {
+                    this.activeRatio = ratio;
+                    console.log(this.totalPricePerShare);
+                    console.log(this.availableBalance);
 
-                if (!this.totalPricePerShare || parseFloat(this.totalPricePerShare) <= 0 || !this.availableBalance) {
-                    return;
-                }
+                    if (
+                        !this.totalPricePerShare ||
+                        parseFloat(this.totalPricePerShare) <= 0 ||
+                        !this.availableBalance
+                    ) {
+                        return;
+                    }
 
-                // 计算可买股数的基础值
-                const baseShares = this.availableBalance / parseFloat(this.totalPricePerShare);
-                let targetShares = 0;
+                    // 计算可买股数的基础值
+                    const baseShares = this.availableBalance / parseFloat(this.totalPricePerShare);
+                    let targetShares = 0;
 
-                switch (ratio) {
-                    case 'full':
-                        // 全仓使用全部可用余额
-                        targetShares = Math.floor(baseShares / 100) * 100;
-                        break;
-                    case 'half':
-                        // 半仓使用一半可用余额
-                        targetShares = Math.floor(baseShares / 2 / 100) * 100;
-                        break;
-                    case 'third':
-                        // 三分之一仓位
-                        targetShares = Math.floor(baseShares / 3 / 100) * 100;
-                        break;
-                    case 'quarter':
-                        // 四分之一仓位
-                        targetShares = Math.floor(baseShares / 4 / 100) * 100;
-                        break;
-                }
+                    switch (ratio) {
+                        case 'full':
+                            // 全仓使用全部可用余额
+                            targetShares = Math.floor(baseShares / 100) * 100;
+                            break;
+                        case 'half':
+                            // 半仓使用一半可用余额
+                            targetShares = Math.floor(baseShares / 2 / 100) * 100;
+                            break;
+                        case 'third':
+                            // 三分之一仓位
+                            targetShares = Math.floor(baseShares / 3 / 100) * 100;
+                            break;
+                        case 'quarter':
+                            // 四分之一仓位
+                            targetShares = Math.floor(baseShares / 4 / 100) * 100;
+                            break;
+                    }
 
-                // 确保至少购买1手（100股）
-                targetShares = Math.max(targetShares, 100);
+                    // 确保至少购买1手（100股）
+                    targetShares = Math.max(targetShares, 100);
 
-                // 更新可买股数，这样 maxBuyableLots 计算属性会跟着变化
-                this.$set(this, 'currentMaxBuyableShares', targetShares);
+                    // 更新可买股数，这样 maxBuyableLots 计算属性会跟着变化
+                    this.$set(this, 'currentMaxBuyableShares', targetShares);
 
-                // 计算手数（1手=100股）
-                this.quantity = targetShares / 100;
+                    // 计算手数（1手=100股）并使用 $set 确保 Vue 能检测到变化
+                    this.$set(this, 'quantity', targetShares / 100);
 
-                // 手动触发数量变化事件，确保交易信息费用更新
-                this.onQuantityChange();
+                    // 手动触发数量变化事件，确保交易信息费用更新
+                    this.onQuantityChange();
+                });
             },
             // 格式化盘口数量
             formatVolume(num) {
