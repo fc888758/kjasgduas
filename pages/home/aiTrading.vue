@@ -35,12 +35,8 @@
 
             <!-- 产品列表 -->
             <view class="product-list">
-                <view
-                    class="product-card"
-                    v-for="(product, index) in products"
-                    :key="index"
-                    @click="viewProduct(product)"
-                >
+                <view class="product-card" v-for="(product, index) in products" :key="index"
+                    @click="viewProduct(product)">
                     <view class="product-header">
                         <text class="product-name">{{ product.name }}</text>
                         <text class="status-tag">{{ product.status }}</text>
@@ -67,232 +63,228 @@
 </template>
 
 <script>
-    export default {
-        data() {
-            return {
-                products: [
-                    {
-                        name: 'Product Name',
-                        status: '运行中',
-                        returnRate: '16%',
-                        lockPeriod: '6天',
-                        riskLevel: '稳健',
-                    },
-                    {
-                        name: '产品名称',
-                        status: '运行中',
-                        returnRate: '20.5%',
-                        lockPeriod: '10天',
-                        riskLevel: '稳健',
-                    },
-                ],
-            };
+export default {
+    data() {
+        return {
+            products: [
+                {
+                    name: 'Product Name',
+                    status: '运行中',
+                    returnRate: '16%',
+                    lockPeriod: '6天',
+                    riskLevel: '稳健',
+                },
+                {
+                    name: '产品名称',
+                    status: '运行中',
+                    returnRate: '20.5%',
+                    lockPeriod: '10天',
+                    riskLevel: '稳健',
+                },
+            ],
+        };
+    },
+    methods: {
+        goBack() {
+            uni.navigateBack();
         },
-        methods: {
-            goBack() {
-                uni.navigateBack();
-            },
-            goToRecord() {
-                uni.navigateTo({
-                    url: '/pages/trade/record',
-                });
-            },
-            viewProduct(product) {
-                uni.navigateTo({
-                    url: `/pages/trade/product-detail?id=${product.id}`,
-                });
-            },
+        goToRecord() {
+            this.$tab.navigateTo('/pages/trade/record');
         },
-    };
+        viewProduct(product) {
+            this.$tab.navigateTo('/pages/trade/product-detail?id=' + this.product.id);
+        },
+    },
+};
 </script>
 
 <style lang="scss" scoped>
-    .ai-trade-container {
-        min-height: 100vh;
-        background-color: #f8f8f8;
+.ai-trade-container {
+    min-height: 100vh;
+    background-color: #f8f8f8;
 
-        .nav-bar {
+    .nav-bar {
+        display: flex;
+        align-items: center;
+        padding: 60rpx 40rpx 20rpx;
+        background-color: #fff;
+
+        .back-icon {
+            width: 48rpx;
+            height: 48rpx;
+        }
+
+        .title {
+            flex: 1;
+            text-align: center;
+            font-size: 36rpx;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .apply-record {
+            font-size: 28rpx;
+            color: #666;
+        }
+    }
+
+    .wallet-card {
+        margin: 20rpx;
+        padding: 30rpx;
+        background: linear-gradient(180deg, #e5b980 0%, #d4a45e 100%);
+        border-radius: 20rpx;
+
+        .card-title {
+            font-size: 32rpx;
+            color: #fff;
+            margin-bottom: 30rpx;
+        }
+
+        .balance-row {
             display: flex;
-            align-items: center;
-            padding: 60rpx 40rpx 20rpx;
-            background-color: #fff;
+            justify-content: space-between;
+            margin-bottom: 40rpx;
 
-            .back-icon {
-                width: 48rpx;
-                height: 48rpx;
-            }
-
-            .title {
-                flex: 1;
-                text-align: center;
-                font-size: 36rpx;
-                font-weight: 500;
-                color: #333;
-            }
-
-            .apply-record {
-                font-size: 28rpx;
-                color: #666;
-            }
-        }
-
-        .wallet-card {
-            margin: 20rpx;
-            padding: 30rpx;
-            background: linear-gradient(180deg, #e5b980 0%, #d4a45e 100%);
-            border-radius: 20rpx;
-
-            .card-title {
-                font-size: 32rpx;
-                color: #fff;
-                margin-bottom: 30rpx;
-            }
-
-            .balance-row {
-                display: flex;
-                justify-content: space-between;
-                margin-bottom: 40rpx;
-
-                .balance-item {
-                    .label {
-                        font-size: 24rpx;
-                        color: rgba(255, 255, 255, 0.8);
-                        margin-bottom: 10rpx;
-                        display: block;
-                    }
-
-                    .amount {
-                        font-size: 40rpx;
-                        color: #fff;
-                        font-weight: 500;
-
-                        &.highlight {
-                            color: #ffe4b8;
-                        }
-                    }
-                }
-            }
-
-            .action-buttons {
-                display: flex;
-                gap: 20rpx;
-
-                .action-btn {
-                    flex: 1;
-                    height: 80rpx;
-                    line-height: 80rpx;
-                    text-align: center;
-                    font-size: 28rpx;
-                    border-radius: 40rpx;
-
-                    &.transfer-in {
-                        background-color: #fff;
-                        color: #d4a45e;
-                    }
-
-                    &.transfer-out {
-                        background-color: transparent;
-                        border: 2rpx solid #fff;
-                        color: #fff;
-                    }
-                }
-            }
-        }
-
-        .ai-products {
-            padding: 30rpx 20rpx;
-
-            .section-header {
-                margin-bottom: 30rpx;
-
-                .title {
-                    font-size: 32rpx;
-                    color: #333;
-                    font-weight: 500;
+            .balance-item {
+                .label {
+                    font-size: 24rpx;
+                    color: rgba(255, 255, 255, 0.8);
                     margin-bottom: 10rpx;
                     display: block;
                 }
 
-                .subtitle {
-                    font-size: 24rpx;
-                    color: #999;
+                .amount {
+                    font-size: 40rpx;
+                    color: #fff;
+                    font-weight: 500;
+
+                    &.highlight {
+                        color: #ffe4b8;
+                    }
                 }
             }
+        }
 
-            .product-list {
-                .product-card {
+        .action-buttons {
+            display: flex;
+            gap: 20rpx;
+
+            .action-btn {
+                flex: 1;
+                height: 80rpx;
+                line-height: 80rpx;
+                text-align: center;
+                font-size: 28rpx;
+                border-radius: 40rpx;
+
+                &.transfer-in {
                     background-color: #fff;
-                    border-radius: 16rpx;
-                    padding: 30rpx;
-                    margin-bottom: 20rpx;
+                    color: #d4a45e;
+                }
 
-                    .product-header {
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                        margin-bottom: 30rpx;
+                &.transfer-out {
+                    background-color: transparent;
+                    border: 2rpx solid #fff;
+                    color: #fff;
+                }
+            }
+        }
+    }
 
-                        .product-name {
-                            font-size: 32rpx;
-                            color: #333;
-                            font-weight: 500;
-                        }
+    .ai-products {
+        padding: 30rpx 20rpx;
 
-                        .status-tag {
-                            font-size: 24rpx;
-                            color: #67c23a;
-                            padding: 4rpx 16rpx;
-                            background-color: rgba(103, 194, 58, 0.1);
-                            border-radius: 20rpx;
-                        }
+        .section-header {
+            margin-bottom: 30rpx;
+
+            .title {
+                font-size: 32rpx;
+                color: #333;
+                font-weight: 500;
+                margin-bottom: 10rpx;
+                display: block;
+            }
+
+            .subtitle {
+                font-size: 24rpx;
+                color: #999;
+            }
+        }
+
+        .product-list {
+            .product-card {
+                background-color: #fff;
+                border-radius: 16rpx;
+                padding: 30rpx;
+                margin-bottom: 20rpx;
+
+                .product-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 30rpx;
+
+                    .product-name {
+                        font-size: 32rpx;
+                        color: #333;
+                        font-weight: 500;
                     }
 
-                    .product-info {
-                        display: flex;
-                        justify-content: space-between;
-                        margin-bottom: 30rpx;
-
-                        .info-item {
-                            .label {
-                                font-size: 24rpx;
-                                color: #999;
-                                margin-bottom: 10rpx;
-                                display: block;
-                            }
-
-                            .value {
-                                font-size: 32rpx;
-                                color: #333;
-
-                                &.highlight {
-                                    color: #ff5b5b;
-                                }
-                            }
-                        }
+                    .status-tag {
+                        font-size: 24rpx;
+                        color: #67c23a;
+                        padding: 4rpx 16rpx;
+                        background-color: rgba(103, 194, 58, 0.1);
+                        border-radius: 20rpx;
                     }
+                }
 
-                    .risk-level {
-                        display: flex;
-                        align-items: center;
+                .product-info {
+                    display: flex;
+                    justify-content: space-between;
+                    margin-bottom: 30rpx;
 
+                    .info-item {
                         .label {
                             font-size: 24rpx;
                             color: #999;
+                            margin-bottom: 10rpx;
+                            display: block;
                         }
 
                         .value {
-                            font-size: 24rpx;
+                            font-size: 32rpx;
                             color: #333;
-                        }
 
-                        .arrow-icon {
-                            width: 32rpx;
-                            height: 32rpx;
-                            margin-left: auto;
+                            &.highlight {
+                                color: #ff5b5b;
+                            }
                         }
+                    }
+                }
+
+                .risk-level {
+                    display: flex;
+                    align-items: center;
+
+                    .label {
+                        font-size: 24rpx;
+                        color: #999;
+                    }
+
+                    .value {
+                        font-size: 24rpx;
+                        color: #333;
+                    }
+
+                    .arrow-icon {
+                        width: 32rpx;
+                        height: 32rpx;
+                        margin-left: auto;
                     }
                 }
             }
         }
     }
+}
 </style>

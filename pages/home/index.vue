@@ -1,29 +1,22 @@
 <template>
-    <!--@refresherrefresh="onRefresh"
-            @scrolltolower="onLoadMore"-->
     <view class="home-container">
         <scroll-view
             :scroll-y="true"
-            refresher-enabled
+            refresher-enabled="true"
+            @refresherrefresh="onRefresherrefresh"
             :refresher-triggered="isRefreshing"
             @scroll="handleScroll"
             class="scroll-container"
         >
             <!-- 科学理财标题区域 -->
-            <view class="title-section">
-                <!--<text class="main-title">科学理财</text>
-                <text class="sub-title">投资有道</text>-->
-            </view>
-            <!-- 占位header，用于保持滚动位置 -->
-            <!--<view class="header-placeholder" :style="{ height: headerHeight + 'px' }"></view>-->
-
+            <view class="title-section"></view>
             <!-- 固定在顶部的header -->
             <view class="header fixed-header" :class="{ 'is-fixed': isFixed }" ref="header">
                 <view class="search-bar">
                     <view>
-                        <image src="/static/image/userpic.png" class="userpic" @click="goUser()"></image>
+                        <image src="/static/image/userpic.png" class="userpic"></image>
                     </view>
-                    <view class="search-input" @click="goToSearch">
+                    <view class="search-input" @click="handleFunctionClick(1)">
                         <up-icon name="search" size="22" color="#999"></up-icon>
                         <text class="placeholder">输入股票名称/代码</text>
                     </view>
@@ -32,28 +25,21 @@
                             class="icon"
                             src="../../static/icon/customer-service-icon.png"
                             mode="aspectFit"
-                            @click="goToCustomerService()"
+                            @click="handleFunctionClick(10)"
                         >
                         </image>
-                        <!-- <up-icon name="bell" size="20" @click="goToNotifications"></up-icon> -->
-                        <image
-                            src="/static/icon/notification.png"
-                            mode="aspectFit"
-                            class="icon"
-                            @click="goToNotifications"
-                        ></image>
                     </view>
                 </view>
                 <!-- 快捷标签 -->
                 <view class="tags" v-show="isScrolled">
                     <view
-                        v-for="(tag, index) in quickTags"
-                        :key="index"
+                        v-for="option in quickTags"
+                        :key="option.id"
                         class="tag-item"
-                        :class="{ active: activeTag === tag.id }"
-                        @click="selectTag(tag.id)"
+                        :class="{ active: activeNewsOption === option.id }"
+                        @click="handleNewsOptionClick(option.id)"
                     >
-                        {{ tag.text }}
+                        <text>{{ option.text }}</text>
                     </view>
                 </view>
             </view>
@@ -129,7 +115,7 @@
                 <!-- 新闻选项 -->
                 <view class="news-options">
                     <view
-                        v-for="option in newsOptions"
+                        v-for="option in quickTags"
                         :key="option.id"
                         class="option-item"
                         :class="{ active: activeNewsOption === option.id }"
@@ -145,7 +131,7 @@
                             class="news-item"
                             v-for="(item, index) in newsItems"
                             :key="index"
-                            @click="itemClick(item.id)"
+                            @click="handleFunctionClick(11, { newId: item.id })"
                         >
                             <view class="news-title">{{ item.title }}</view>
                             <view class="news-time">{{ item.create_time }}</view>
@@ -158,57 +144,52 @@
                 </view>
             </view>
         </scroll-view>
+        <Foot :currentIndexTab="currentIndexTab" />
     </view>
 </template>
 
 <script>
+    import Foot from '/pages/index.vue';
     import navigationMixin from '@/common/utils/navigation.js';
     export default {
         mixins: [navigationMixin],
-        name: 'Home',
+        components: { Foot },
         data() {
             return {
-                activeTag: 0,
+                currentIndexTab: 'home',
                 isScrolled: false,
                 isRefreshing: false,
                 isFixed: false,
                 headerHeight: 0,
-                searchKeyword: '',
-                currentTab: 'home',
                 functionItems: [
-                    { type: 'verify', text: '极速开户', icon: '/static/icon/open-account.png' },
-                    { type: 'market', text: '市场行情', icon: '/static/icon/market.png' },
-                    { type: 'fund', text: '配售', icon: '/static/icon/fund.png' },
-                    { type: 'vip', text: 'VIP调研票', icon: '/static/icon/vip.png' },
-                    { type: 'new_stock', text: '新股申购', icon: '/static/icon/new-stock.png' },
-                    { type: 'bank_transfer', text: '银证转账', icon: '/static/icon/bank-transfer.png' },
-                    { type: 'contract', text: '要约收购', icon: '/static/icon/contract.png' },
-                    { type: 'records', text: '持仓记录', icon: '/static/icon/records.png' }, // 从AI交易改为持仓记录
+                    { type: 2, text: '极速开户', icon: '/static/icon/open-account.png' },
+                    { type: 3, text: '市场行情', icon: '/static/icon/market.png' },
+                    { type: 4, text: '配售', icon: '/static/icon/fund.png' },
+                    { type: 5, text: 'VIP调研票', icon: '/static/icon/vip.png' },
+                    { type: 6, text: '新股申购', icon: '/static/icon/new-stock.png' },
+                    { type: 7, text: '银证转账', icon: '/static/icon/bank-transfer.png' },
+                    { type: 8, text: '要约收购', icon: '/static/icon/contract.png' },
+                    { type: 9, text: '持仓记录', icon: '/static/icon/records.png' },
                 ],
                 quickTags: [
-                    { text: '极速开户', icon: 'plus', color: '#ff6b6b' },
-                    { text: '市场行情', icon: 'graph', color: '#4ecdc4' },
-                    { text: '配售', icon: 'gift', color: '#45b7af' },
-                    { text: 'VIP调研票', icon: 'vip', color: '#fed330' },
-                ],
-                stockIndexes: [
-                    { name: '上证指数', value: '3360.93', change: 0.4 },
-                    { name: '深证成指', value: '10063.01', change: 0.22 },
-                    { name: '创业板指', value: '2005.30', change: 0.61 },
+                    { id: 1, text: '要闻7X24' },
+                    { id: 2, text: '全球焦点' },
+                    { id: 3, text: '市场热点' },
+                    { id: 4, text: '名家观点' },
                 ],
                 upStocks: 3300,
                 downStocks: 1619,
-                newsItems: '',
-                newsOptions: [
-                    { id: '1', text: '要闻7X24' },
-                    { id: '2', text: '全球焦点' },
-                    { id: '3', text: '市场热点' },
-                    { id: '4', text: '名家观点' },
-                ],
-                activeNewsOption: '1',
+                newsItems: [],
+                activeNewsOption: 1,
                 intervalId: null,
-                hotNewData: '',
+                hotNewData: [],
+                userInfo: null,
             };
+        },
+        onShow() {
+            this.getNewsList();
+            this.getUserInfo();
+            this.getPopularIndustriesApi();
         },
         async mounted() {
             // 获取header高度
@@ -221,11 +202,7 @@
                     }
                 })
                 .exec();
-
-            this.getHomeStatic(); // 进入页面时启动轮询，每3秒执行一次
-            this.getNewsList();
         },
-
         computed: {
             upPercent() {
                 const total = this.upStocks + this.downStocks;
@@ -234,13 +211,6 @@
             downPercent() {
                 const total = this.upStocks + this.downStocks;
                 return Math.round((this.downStocks / total) * 100);
-            },
-            stockIndexGroups() {
-                const groups = [];
-                for (let i = 0; i < this.stockIndexes.length; i += 3) {
-                    groups.push(this.stockIndexes.slice(i, i + 3));
-                }
-                return groups;
             },
             industryGroups() {
                 // 确保 hotNewData 和 industry 属性存在
@@ -258,47 +228,76 @@
             },
         },
         methods: {
+            handleFunctionClick(type, data = null) {
+                switch (type) {
+                    case 1:
+                        this.$tab.navigateTo('/pages/home/inputSearch');
+                        break;
+                    case 2:
+                        if (!this.userInfo) {
+                            this.$tab.navigateTo('/pages/mine/login');
+                        } else if (this.userInfo.is_real_name == 2) {
+                            this.$tab.navigateTo('/pages/mine/index');
+                        } else {
+                            this.$tab.navigateTo('/pages/mine/verify');
+                        }
+                        break;
+                    case 3:
+                        uni.setStorageSync('marketCurrent', 0);
+                        this.$tab.navigateTo('/pages/market/index');
+                        break;
+                    case 4:
+                        uni.setStorageSync('marketCurrent', 3);
+                        this.$tab.navigateTo('/pages/market/index');
+                        break;
+                    case 5:
+                        this.$tab.navigateTo('/pages/market/components/vipResearch');
+                        break;
+                    case 6:
+                        uni.setStorageSync('marketCurrent', 2);
+                        this.$tab.navigateTo('/pages/market/index');
+                        break;
+                    case 7:
+                        this.$tab.navigateTo('/pages/mine/recharge');
+                        break;
+                    case 8:
+                        uni.setStorageSync('marketCurrent', 4);
+                        this.$tab.navigateTo('/pages/market/index');
+                        break;
+                    case 9:
+                        this.$tab.navigateTo('/pages/trade/index');
+                        break;
+                    case 10:
+                        this.$modal.msgError('客服中心开发中');
+                        break;
+                    case 11:
+                        this.$tab.navigateTo('/pages/home/newdetail?newId=' + data.newId);
+                        break;
+                }
+            },
+            // 获取用户
+            getUserInfo() {
+                this.userInfo = uni.getStorageSync('userInfo');
+            },
             selectTag(tagId) {
                 this.activeTag = tagId;
             },
             async getNewsList(type = 1) {
-                this.newsItems = (
-                    await this.$api.getNewsList({
-                        page: 1,
-                        type,
-                    })
-                ).data;
+                this.newsItems = (await this.$api.getNewsList({ page: 1, type })).data;
             },
-            goUser() {
-                //使用全局事件总线
-                this.$nextTick(() => {
-                    uni.$emit('switchToMine');
-                });
-            },
-            goToNotifications() {
-                this.navigateTo('/pages/home/components/notice');
-            },
-            goToCustomerService() {
-                uni.showToast({
-                    title: '客服功能还未上线',
-                    icon: 'none',
-                    duration: 2000,
-                });
-            },
-            itemClick(id) {
-                this.navigateTo('/pages/home/newdetail', {
-                    newId: id,
-                });
+            async getPopularIndustriesApi() {
+                this.hotNewData = await this.$api.getPopularIndustriesApi();
             },
             handleScroll(e) {
-                //console.log('scroll event:', e);
                 if (e.detail) {
                     const scrollTop = e.detail.scrollTop;
-                    console.log('scrollTop:', scrollTop);
                     // 计算透明度，最大滚动距离设为100，透明度范围0-1
                     const opacity = Math.min(scrollTop / 100, 1);
                     // 更新滚动状态
-                    this.isScrolled = scrollTop > 20;
+                    // 获取特定 class 元素的到顶部的高度
+                    const element = document.querySelector('.news-list');
+                    const rect = element.getBoundingClientRect();
+                    this.isScrolled = rect.top - 50 <= 0;
                     this.scrollTop = scrollTop;
                     // 动态设置背景色透明度
                     const searchArea = document.querySelector('.header');
@@ -307,72 +306,18 @@
                     }
                 }
             },
-            goToSearch() {
-                // 跳转到搜索页面
-                uni.navigateTo({
-                    url: '/pages/home/components/inputSearch',
-                });
-            },
             handleNewsOptionClick(option) {
                 this.activeNewsOption = option;
                 this.getNewsList(option);
             },
-            handleFunctionClick(type) {
-                switch (type) {
-                    case 'verify':
-                        this.navigateTo('/pages/mine/verify');
-                        break;
-                    case 'fund':
-                        this.navigateTo('/pages/trade/fund');
-                        break;
-                    case 'transfer':
-                        this.navigateTo('/pages/trade/transfer');
-                        break;
-                    case 'records':
-                        this.navigateTo('/pages/trade/records');
-                        break;
-                    case 'contract':
-                        this.navigateTo('/pages/trade/contract');
-                        break;
-                    case 'newStock':
-                        this.navigateTo('/pages/trade/new-stock');
-                        break;
-                    case 'openAccount':
-                        this.navigateTo('/pages/mine/open-account');
-                        break;
-                    case 'vip':
-                        this.navigateTo('/pages/mine/vipResearch');
-                        break;
-                    default:
-                        uni.showToast({
-                            title: '功能开发中',
-                            icon: 'none',
-                        });
-                }
-            },
-            async getHomeStatic() {
-                try {
-                    this.hotNewData = await this.$api.getPopularIndustriesApi();
-                    console.log(this.hotNewData);
-                } catch (error) {
-                    console.error('请求失败:', error);
-                } finally {
-                    // 请求完成后，设置下一次轮询
-                    if (this.intervalId) {
-                        clearInterval(this.intervalId); // 清除之前的定时器
-                        this.intervalId = null;
-                    }
-                    this.intervalId = setTimeout(() => this.getHomeStatic(), 1000 * 60); // 3秒后重新发起请求
-                }
-            },
-            handleTabChange(name) {
-                this.currentTab = name;
-            },
-            goUser() {
-                //使用全局事件总线
-                this.$nextTick(() => {
-                    uni.$emit('switchToMine');
-                });
+            onRefresherrefresh() {
+                this.isRefreshing = true;
+                this.getNewsList();
+                this.getUserInfo();
+                this.getPopularIndustriesApi();
+                setTimeout(() => {
+                    this.isRefreshing = false;
+                }, 500);
             },
         },
     };
@@ -462,7 +407,6 @@
 
         &.active {
             background-color: #ffe4c4;
-            color: #ff8c00;
         }
     }
 
@@ -536,10 +480,15 @@
             border-radius: 4px 4px 0 0;
             height: 90px;
             margin-right: 6px;
+            // margin-left: 6px;
 
-            &:nth-of-type(3n) {
-                margin-right: 0;
-            }
+            // &:nth-of-type(1n) {
+            //     margin-left: 0;
+            // }
+
+            // &:nth-of-type(3n) {
+            //     margin-right: 0;
+            // }
         }
 
         // 添加涨跌背景样式

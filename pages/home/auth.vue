@@ -30,7 +30,7 @@ export default {
         const auth = uni.getStorageSync('auth');
         const safetyCode = uni.getStorageSync('safetyCode');
         if (auth != '' && safetyCode != '' && auth == safetyCode) {
-            this.$tab.reLaunch('/pages/index');
+            this.$tab.reLaunch('/pages/home/index');
         }
     },
     methods: {
@@ -39,7 +39,7 @@ export default {
             if (validDomain) {
                 if (this.password == uni.getStorageSync('safetyCode')) {
                     uni.setStorageSync('auth', this.password);
-                    this.$tab.reLaunch('/pages/index');
+                    this.$tab.reLaunch('/pages/home/index');
                 } else {
                     this.$modal.msgError('口令错误');
                 }

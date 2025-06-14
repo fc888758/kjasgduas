@@ -1,76 +1,78 @@
 <template>
-    <view class="container">
-        <!-- 根据当前选中的标签显示对应的组件 -->
-        <component :is="currentComponent"></component>
+    <view>
+        <view class="container">
+            <!-- 根据当前选中的标签显示对应的组件 -->
+            <!-- <component :is="currentComponent"></component> -->
 
-        <!-- 悬浮客服按钮 -->
-        <movable-area class="movable-customer-service-area">
-            <movable-view
-                class="float-customer-service"
-                direction="all"
-                :x="initialX"
-                :y="initialY"
-                @change="onCustomerServiceMove"
-                @click="contactCustomerService"
+            <!-- 悬浮客服按钮 -->
+            <movable-area class="movable-customer-service-area">
+                <movable-view
+                    class="float-customer-service"
+                    direction="all"
+                    :x="initialX"
+                    :y="initialY"
+                    @change="onCustomerServiceMove"
+                    @click="contactCustomerService"
+                >
+                    <image src="/static/icon/customer-service-icon.png" mode="aspectFit"></image>
+                </movable-view>
+            </movable-area>
+
+            <!-- 底部导航栏 -->
+            <up-tabbar
+                :value="currentIndexTab"
+                @change="handleTabChange"
+                :fixed="true"
+                :placeholder="true"
+                activeColor="#333"
             >
-                <image src="/static/icon/customer-service-icon.png" mode="aspectFit"></image>
-            </movable-view>
-        </movable-area>
-
-        <!-- 底部导航栏 -->
-        <up-tabbar :value="currentTab" @change="handleTabChange" :fixed="true" :placeholder="true" activeColor="#333">
-            <up-tabbar-item name="home" text="首页">
-                <template #active-icon>
-                    <image style="width: 24px; height: 24px" src="/static/icon/home-active.png"></image>
-                </template>
-                <template #inactive-icon>
-                    <image style="width: 24px; height: 24px" src="/static/icon/home.png"></image>
-                </template>
-            </up-tabbar-item>
-            <up-tabbar-item name="market" text="行情">
-                <template #active-icon>
-                    <image style="width: 24px; height: 24px" src="/static/icon/hangqing-active.png"></image>
-                </template>
-                <template #inactive-icon>
-                    <image style="width: 24px; height: 24px" src="/static/icon/hangqing.png"></image>
-                </template>
-            </up-tabbar-item>
-            <up-tabbar-item name="trade" text="交易">
-                <template #active-icon>
-                    <image style="width: 24px; height: 24px" src="/static/icon/chicang-active.png"></image>
-                </template>
-                <template #inactive-icon>
-                    <image style="width: 24px; height: 24px" src="/static/icon/chicang.png"></image>
-                </template>
-            </up-tabbar-item>
-            <up-tabbar-item name="mine" text="我的">
-                <template #active-icon>
-                    <image style="width: 24px; height: 24px" src="/static/icon/user-active.png"></image>
-                </template>
-                <template #inactive-icon>
-                    <image style="width: 24px; height: 24px" src="/static/icon/user.png"></image>
-                </template>
-            </up-tabbar-item>
-        </up-tabbar>
+                <up-tabbar-item name="home" text="首页">
+                    <template #active-icon>
+                        <image style="width: 24px; height: 24px" src="/static/icon/home-active.png"></image>
+                    </template>
+                    <template #inactive-icon>
+                        <image style="width: 24px; height: 24px" src="/static/icon/home.png"></image>
+                    </template>
+                </up-tabbar-item>
+                <up-tabbar-item name="market" text="行情">
+                    <template #active-icon>
+                        <image style="width: 24px; height: 24px" src="/static/icon/hangqing-active.png"></image>
+                    </template>
+                    <template #inactive-icon>
+                        <image style="width: 24px; height: 24px" src="/static/icon/hangqing.png"></image>
+                    </template>
+                </up-tabbar-item>
+                <up-tabbar-item name="trade" text="交易">
+                    <template #active-icon>
+                        <image style="width: 24px; height: 24px" src="/static/icon/chicang-active.png"></image>
+                    </template>
+                    <template #inactive-icon>
+                        <image style="width: 24px; height: 24px" src="/static/icon/chicang.png"></image>
+                    </template>
+                </up-tabbar-item>
+                <up-tabbar-item name="mine" text="我的">
+                    <template #active-icon>
+                        <image style="width: 24px; height: 24px" src="/static/icon/user-active.png"></image>
+                    </template>
+                    <template #inactive-icon>
+                        <image style="width: 24px; height: 24px" src="/static/icon/user.png"></image>
+                    </template>
+                </up-tabbar-item>
+            </up-tabbar>
+        </view>
     </view>
 </template>
 
 <script>
-    import Home from './home';
-    import Market from './market';
-    import Trade from './trade';
-    import Mine from './mine';
-
     export default {
-        components: {
-            Home,
-            Market,
-            Trade,
-            Mine,
+        props: {
+            currentIndexTab: {
+                type: String,
+                default: 'home',
+            },
         },
         data() {
             return {
-                currentTab: 'home',
                 // 添加初始位置
                 initialX: uni.getSystemInfoSync().windowWidth - 70, // 右侧位置
                 initialY: uni.getSystemInfoSync().windowHeight - 200, // 底部位置
@@ -82,38 +84,39 @@
                 showCustomerService: false,
             };
         },
-        computed: {
-            currentComponent() {
-                const componentMap = {
-                    home: 'Home',
-                    market: 'Market',
-                    trade: 'Trade',
-                    mine: 'Mine',
-                };
-                return componentMap[this.currentTab];
-            },
-        },
         mounted() {
-            // 监听切换到mine标签的事件
-            uni.$on('switchToMine', () => {
-                this.currentTab = 'mine';
-                console.log('Received switchToMine event, currentTab:', this.currentTab);
-            });
+            // // 监听切换到mine标签的事件
+            // uni.$on('switchToMine', () => {
+            //     this.currentTab = 'mine';
+            //     console.log('Received switchToMine event, currentTab:', this.currentTab);
+            // });
+
+            // // 监听切换到market标签的事件
+            // uni.$on('switchToMarket', () => {
+            //     this.currentTab = 'market';
+            //     console.log('Received switchToMarket event, currentTab:', this.currentTab);
+            // });
 
             // 延时显示客服按钮，确保位置已经计算好
             setTimeout(() => {
                 this.showCustomerService = true;
                 // 添加下面这行代码，通过DOM操作将opacity设置为1
                 document.querySelector('.movable-customer-service-area').style.opacity = '1';
-            }, 1000); // 将300毫秒改为1000毫秒(1秒)
+            }, 300); // 将300毫秒改为1000毫秒(1秒)
         },
-        beforeDestroy() {
-            // 移除事件监听
-            uni.$off('switchToMine');
-        },
+        // beforeDestroy() {
+        //     // 移除事件监听
+        //     uni.$off('switchToMine');
+        //     uni.$off('switchToMarket');
+        // },
         methods: {
             handleTabChange(tab) {
                 this.currentTab = tab;
+                // 如果切换到行情页面，将 marketCurrent 设置为 0
+                if (tab === 'market') {
+                    uni.setStorageSync('marketCurrent', 0);
+                }
+                this.$tab.navigateTo('/pages/' + this.currentTab + '/index');
             },
             // 监听客服按钮移动
             onCustomerServiceMove(e) {
@@ -133,9 +136,6 @@
                         if (res.confirm) {
                             // 可以根据实际需求实现，例如：
                             // 1. 跳转到客服页面
-                            // uni.navigateTo({
-                            //     url: '/pages/customer-service/index'
-                            // });
 
                             // 2. 拨打客服电话
                             // uni.makePhoneCall({
@@ -153,13 +153,6 @@
 </script>
 
 <style lang="scss" scoped>
-    .container {
-        min-height: 100vh;
-        background-color: #f5f5f5;
-        display: flex;
-        flex-direction: column;
-    }
-
     .movable-customer-service-area {
         position: fixed;
         width: 100%;
@@ -170,45 +163,28 @@
         z-index: 999;
         opacity: 0;
         transition: opacity 0.3s;
-    }
 
-    /* 悬浮按钮样式 */
-    .float-customer-service {
-        width: 100rpx;
-        height: 100rpx;
-        border-radius: 50%;
-        background-color: #fff;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        pointer-events: auto;
-        transition: transform 0.2s;
-    }
+        /* 悬浮按钮样式 */
+        .float-customer-service {
+            width: 100rpx;
+            height: 100rpx;
+            border-radius: 50%;
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto;
+            transition: transform 0.2s;
+        }
 
-    .float-customer-service image {
-        width: 60rpx;
-        height: 60rpx;
-    }
+        .float-customer-service image {
+            width: 60rpx;
+            height: 60rpx;
+        }
 
-    .float-customer-service:active {
-        transform: scale(0.95);
-    }
-
-    .container {
-        min-height: 100vh;
-        background-color: #f5f5f5;
-        display: flex;
-        flex-direction: column;
-    }
-    /* 图标样式 */
-    .float-customer-service image {
-        width: 60rpx;
-        height: 60rpx;
-    }
-
-    /* 点击效果 */
-    .float-customer-service:active {
-        transform: scale(0.95);
+        .float-customer-service:active {
+            transform: scale(0.95);
+        }
     }
 </style>

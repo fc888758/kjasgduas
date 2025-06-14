@@ -3,9 +3,10 @@ import astock from './system/astock.js';
 import home from './system/home.js';
 import user from './system/user.js';
 import platform from './system/platform.js';
+import wallet from './system/wallet.js';
 
 // 创建一个汇总所有 API 方法的对象
-const modules = { astock, home, user, platform };
+const modules = { astock, home, user, platform, wallet };
 const api = {};
 
 // 遍历所有模块，将它们的方法添加到 api 对象中
@@ -18,7 +19,7 @@ Object.entries(modules).forEach(([moduleName, moduleExports]) => {
 });
 
 export { api };
-console.log(api);
+// console.log(api);
 
 // 默认导出所有模块和汇总的 API
 export default {

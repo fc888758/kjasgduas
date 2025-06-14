@@ -9,9 +9,23 @@
             }
         },
         {
-            "path": "pages/index",
+            "path": "pages/home/index",
             "style": {
                 "navigationBarTitleText": "首页",
+                "navigationStyle": "custom"
+            }
+        },
+        {
+            "path": "pages/market/index",
+            "style": {
+                "navigationBarTitleText": "行情",
+                "navigationStyle": "custom"
+            }
+        },
+        {
+            "path": "pages/trade/index",
+            "style": {
+                "navigationBarTitleText": "交易",
                 "navigationStyle": "custom"
             }
         },
@@ -23,14 +37,7 @@
             }
         },
         {
-            "path": "pages/home/aiTrading",
-            "style": {
-                "navigationBarTitleText": "ai交易",
-                "navigationBarBackgroundColor": "#ffffff"
-            }
-        },
-        {
-            "path": "pages/home/components/inputSearch",
+            "path": "pages/home/inputSearch",
             "style": {
                 "navigationBarTitleText": "搜索",
                 "navigationStyle": "custom"
@@ -100,10 +107,46 @@
             }
         },
         {
-            "path": "pages/mine/vipResearch",
+            "path": "pages/market/components/vipResearch",
             "style": {
-                "navigationBarTitleText": "VIP调研",
+                "navigationBarTitleText": "VIP调研票",
                 "navigationBarBackgroundColor": "#ffffff"
+            }
+        },
+        {
+            "path": "pages/mine/addBankCard",
+            "style": {
+                "navigationBarTitleText": "添加银行卡",
+                "navigationBarBackgroundColor": "#ffffff"
+            }
+        },
+        {
+            "path": "pages/mine/withdraw",
+            "style": {
+                "navigationBarTitleText": "银证转出",
+                "navigationBarBackgroundColor": "#f8f8f8",
+                "navigationStyle": "default"
+            }
+        },
+        {
+            "path": "pages/trade/buy",
+            "style": {
+                "navigationBarTitleText": "交易",
+                "navigationBarBackgroundColor": "#f8f8f8",
+                "navigationStyle": "default",
+                "app-plus": {
+                    "titleNView": {
+                        "backgroundImage": "linear-gradient(to right, #ffd177, #cc923d)"
+                    }
+                }
+            }
+        },
+        {
+            "path": "pages/mine/recharge",
+            "style": {
+                "navigationBarTitleText": "银证转入",
+                "navigationBarBackgroundColor": "#f8f8f8",
+                "navigationStyle": "default"
             }
         }
     ],

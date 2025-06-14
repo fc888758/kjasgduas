@@ -1,13 +1,5 @@
 <template>
     <view class="verify-container">
-        <!-- 顶部导航栏 -->
-        <!--<view class="nav-bar">
-            <view class="back-icon" @click="goBack">
-                <image src="/static/icon/back.png" mode="aspectFit"></image>
-            </view>
-            <text class="title">实名认证</text>
-        </view>-->
-
         <!-- 认证表单 -->
         <view class="verify-form">
             <!-- 国籍选择 -->
@@ -22,7 +14,8 @@
             <view class="form-item">
                 <text class="label">名字</text>
                 <view class="input-content">
-                    <input type="text" placeholder="请输入姓名" v-model="formData.name" />
+                    <input type="text" :disabled="auditType == 0 || auditType == 1 ? true : false" placeholder="请输入姓名"
+                        v-model="formData.name" />
                 </view>
             </view>
 
@@ -38,7 +31,8 @@
             <view class="form-item">
                 <text class="label">证件号</text>
                 <view class="input-content">
-                    <input type="text" placeholder="请输入证件号" v-model="formData.idNumber" />
+                    <input type="text" :disabled="auditType == 0 || auditType == 1 ? true : false" placeholder="请输入证件号"
+                        v-model="formData.number" />
                 </view>
             </view>
         </view>
@@ -50,7 +44,7 @@
             <view class="upload-area">
                 <!-- 正面照片上传 -->
                 <view class="upload-item" @click="uploadImage('front')">
-                    <image v-if="formData.frontImage" :src="formData.frontImage" mode="aspectFit" class="preview-image">
+                    <image v-if="front" :src="front" mode="aspectFit" class="preview-image">
                     </image>
                     <view v-else class="upload-placeholder">
                         <image src="/static/image/auth-idcard.png" mode="aspectFit" class="camera-icon"></image>
@@ -59,7 +53,7 @@
                 </view>
                 <!-- 反面照片上传 -->
                 <view class="upload-item" @click="uploadImage('back')">
-                    <image v-if="formData.backImage" :src="formData.backImage" mode="aspectFit" class="preview-image">
+                    <image v-if="back" :src="back" mode="aspectFit" class="preview-image">
                     </image>
                     <view v-else class="upload-placeholder">
                         <image src="/static/image/auth-gh.png" mode="aspectFit" class="camera-icon"></image>
@@ -68,58 +62,118 @@
                 </view>
             </view>
         </view>
-
+        <!-- 拒绝提示原因 -->
+        <view class="remark" v-if="this.auditType == 2 && remark">
+            失败原因<br>{{ remark }}
+        </view>
         <!-- 提交按钮 -->
-        <view class="submit-btn" @click="submitVerification">提交</view>
+        <view class="submit-btn" @click="submitVerification">{{ submitText }}</view>
     </view>
 </template>
 
 <script>
+import upload from '@/common/http/api.js'
 export default {
     name: 'Verify',
+    onShow() {
+        this.getUserInfo()
+    },
     data() {
         return {
+            submitText: '提交',
+            front: '',
+            userInfo: null,
+            back: '',
+            remark: '',
+            auditType: null,
             formData: {
+                type: 0,
                 name: '',
-                idNumber: '',
-                frontImage: '',
-                backImage: '',
+                number: '',
+                front: '',
+                back: '',
             },
         };
     },
     methods: {
-        goBack() {
-            uni.navigateBack();
+        // 获取用户
+        getUserInfo() {
+            this.userInfo = uni.getStorageSync('userInfo');
+            if (!this.userInfo) {
+                this.$tab.redirectTo('/pages/home/index');
+                return
+            }
+            this.$modal.loading('数据加载中...');
+            this.getAuthentication();
+            this.$modal.closeLoading();
+        },
+        getAuthentication() {
+            this.$api.getAuthentication().then(res => {
+                if (res) {
+                    this.auditType = res.review;
+                    this.remark = res.remark;
+                    this.formData.name = res.name;
+                    this.formData.number = res.number;
+                    // this.formData.front = res.front_image;
+                    // this.formData.back = res.back_image;
+                    if (this.auditType == 0) {
+                        this.front = res.front_image;
+                        this.back = res.back_image;
+                        this.submitText = '审核中';
+                    } else if (this.auditType == 1) {
+                        this.front = res.front_image;
+                        this.back = res.back_image;
+                        this.submitText = '认证成功';
+                    } else if (this.auditType == 2) {
+                        this.submitText = '重新提交';
+                    }
+                }
+
+            });
         },
         uploadImage(type) {
+            if (this.auditType == 0 || this.auditType == 1) {
+                return false;
+            }
             uni.chooseImage({
                 count: 1,
-                success: res => {
-                    if (type === 'front') {
-                        this.formData.frontImage = res.tempFilePaths[0];
+                success: async res => {
+                    // 显示加载提示
+                    this.$modal.loading('上传中...');
+                    const retData = await upload.uploadFile({ filePath: res.tempFilePaths[0] })
+                    if (retData.url) {
+                        if (type === 'front') {
+                            this.front = res.tempFilePaths[0];
+                            this.formData.front = retData.url;
+                        } else {
+                            this.back = res.tempFilePaths[0];
+                            this.formData.back = retData.url;
+                        }
+                        this.$modal.msg('图片上传成功');
                     } else {
-                        this.formData.backImage = res.tempFilePaths[0];
+                        this.$modal.msg(retData);
                     }
-                },
+
+                }
             });
         },
         submitVerification() {
+            if (this.auditType == 0 || this.auditType == 1) {
+                return false;
+            }
             // 表单验证和提交逻辑
             if (
                 !this.formData.name ||
-                !this.formData.idNumber ||
-                !this.formData.frontImage ||
-                !this.formData.backImage
+                !this.formData.number ||
+                !this.formData.front ||
+                !this.formData.back
             ) {
-                uni.showToast({
-                    title: '请填写完整信息',
-                    icon: 'none',
-                });
+                this.$modal.msgError('请填写完整信息');
                 return;
             }
-            console.log(this.formData);
-            
-            // TODO: 调用实名认证接口
+            this.$api.submitAuthentication(this.formData).then(res => {
+                this.getAuthentication();
+            });
         },
     },
 };
@@ -127,7 +181,6 @@ export default {
 
 <style lang="scss" scoped>
 .verify-container {
-    min-height: 100vh;
     background-color: #f5f5f5;
 
     .nav-bar {
@@ -154,7 +207,6 @@ export default {
 
     .verify-form {
         background-color: #fff;
-        margin-top: 20rpx;
 
         .form-item {
             display: flex;
@@ -234,6 +286,15 @@ export default {
         }
     }
 
+    .remark {
+        background-color: #fff;
+        color: red;
+        padding-top: 20rpx;
+        padding-bottom: 20rpx;
+        text-align: center;
+        font-size: 48rpx;
+    }
+
     .submit-btn {
         position: fixed;
         bottom: 40rpx;
@@ -242,7 +303,7 @@ export default {
         height: 88rpx;
         line-height: 88rpx;
         text-align: center;
-        background-color: #e6b088;
+        background-color: #f9ae3d;
         color: #fff;
         font-size: 32rpx;
         border-radius: 44rpx;

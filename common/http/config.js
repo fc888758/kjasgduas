@@ -13,17 +13,15 @@ const config = {
     },
 };
 
-
 // 存储检查通过的域名
 let validDomain = '';
 
 // 域名检查函数
 async function checkDomain(domain) {
-
     uni.showLoading({
         title: '线路加载中',
-        mask: true
-    })
+        mask: true,
+    });
     return await new Promise((resolve, reject) => {
         uni.request({
             url: domain + config[ENV].apiPath,
@@ -38,7 +36,7 @@ async function checkDomain(domain) {
                     data: { data },
                 } = res;
                 // 隐藏弹框
-                uni.hideLoading()
+                uni.hideLoading();
                 // 存储数据安全码
                 uni.setStorageSync('safetyCode', data);
                 // 将可用域名存储到本地

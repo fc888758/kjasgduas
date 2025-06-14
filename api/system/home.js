@@ -6,6 +6,8 @@ const buildUrl = path => `${getBaseURL()}${path}`;
 
 // 首页相关API
 export default {
+
+    // 新闻列表数据
     getNewsList: params =>
         http.request({
             url: buildUrl('/api/market/getNewsList'),
@@ -13,12 +15,15 @@ export default {
             data: params,
         }),
 
+    // 新闻详情数据
     newsContentApi: params =>
         http.request({
             url: buildUrl('/api/market/newsContent'),
             method: 'get',
             data: params,
         }),
+
+    // 首页数据
     getPopularIndustriesApi: params =>
         http.request({
             url: buildUrl('/api/platform/getPopularIndustries'),

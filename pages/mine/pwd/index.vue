@@ -10,33 +10,38 @@
       <view class="form-group">
         <view class="form-item">
           <text class="label">旧密码</text>
-          <input type="password" v-model="loginUser.oldPassword" placeholder="请输入旧密码" class="custom-input" />
+          <input type="password" v-model="loginUser.origin_password" placeholder="请输入旧密码" class="custom-input" />
         </view>
 
         <view class="form-item">
           <text class="label">新密码</text>
-          <input type="password" v-model="loginUser.newPassword" placeholder="请输入新密码" class="custom-input" />
+          <input type="password" v-model="loginUser.new_password" placeholder="请输入新密码" class="custom-input" />
         </view>
       </view>
 
       <button class="submit-btn" @click="submitLoginPwd">修改</button>
     </view>
 
-    <!-- 设置交易密码 -->
+    <!-- 设置支付密码 -->
     <view class="section">
       <view class="section-title">
         <view class="title-line"></view>
-        <text class="title-text">设置交易密码</text>
+        <text class="title-text">设置支付密码</text>
       </view>
-
-      <view class="form-group">
+      <view class="form-group" v-if="userInfo.is_default_pws == 1">
         <view class="form-item">
-          <text class="label">交易密码</text>
-          <input type="password" v-model="tradeUser.tradePassword" placeholder="请输入交易密码" class="custom-input" />
+          <text class="label">旧密码</text>
+          <input type="password" v-model="tradeUser.origin_security_password" placeholder="请输入旧密码"
+            class="custom-input" />
         </view>
       </view>
-
-      <button class="submit-btn" @click="submitTradePwd">设置</button>
+      <view class="form-group">
+        <view class="form-item">
+          <text class="label">新密码</text>
+          <input type="password" v-model="tradeUser.new_security_password" placeholder="请输入新密码" class="custom-input" />
+        </view>
+      </view>
+      <button class="submit-btn" @click="submitTradePwd">{{ userInfo.is_default_pws == 0 ? '设置' : '修改' }}</button>
     </view>
   </view>
 </template>
@@ -44,31 +49,73 @@
 <script>
 export default {
   name: 'PwdComponent',
+  onShow() {
+    this.userInfo = uni.getStorageSync('userInfo');
+    if (!this.userInfo) {
+      this.$tab.redirectTo('/pages/home/index');
+    }
+  },
   data() {
     return {
+      userInfo: null,
       loginUser: {
-        oldPassword: '',
-        newPassword: '',
+        origin_password: '',
+        new_password: '',
       },
       tradeUser: {
-        tradePassword: '',
+        origin_security_password: '',
+        new_security_password: '',
       },
     };
   },
   methods: {
     // 修改登录密码 - 简化版本
     submitLoginPwd() {
-      uni.showToast({
-        title: '功能开发中',
-        icon: 'none',
+      if (!this.loginUser.origin_password || !this.loginUser.new_password) {
+        this.$modal.msgError('请您先填写新旧密码');
+        return;
+      }
+      if (this.loginUser.origin_password == this.loginUser.new_password) {
+        this.$modal.msgError('新旧密码不能相同');
+        return;
+      }
+      if (this.loginUser.origin_password.length < 6 || this.loginUser.new_password.length < 6) {
+        this.$modal.msgError('新旧密码长度不能少于6位数');
+        return;
+      }
+      this.$api.changePassword(this.loginUser).then(res => {
+        this.loginUser.origin_password = '';
+        this.loginUser.new_password = '';
       });
     },
-
-    // 设置交易密码 - 简化版本
+    // 设置支付密码 - 简化版本
     submitTradePwd() {
-      uni.showToast({
-        title: '功能开发中',
-        icon: 'none',
+      if (this.userInfo.is_default_pws == 1) {
+        if (!this.tradeUser.origin_security_password) {
+          this.$modal.msgError('请您先填写旧密码');
+          return;
+        }
+        if (isNaN(this.tradeUser.origin_security_password) || this.tradeUser.origin_security_password.length != 6) {
+          this.$modal.msgError('旧密码必须是纯6位数字');
+          return;
+        }
+      }
+      if (!this.tradeUser.new_security_password) {
+        this.$modal.msgError('请您先填写新密码');
+        return;
+      }
+      if (isNaN(this.tradeUser.new_security_password) || this.tradeUser.new_security_password.length != 6) {
+        this.$modal.msgError('新密码必须是纯6位数字');
+        return;
+      }
+      if (this.tradeUser.origin_security_password == this.tradeUser.new_security_password) {
+        this.$modal.msgError('新旧密码不能相同');
+        return;
+      }
+      this.$api.changeSecurityPassword(this.tradeUser).then(res => {
+        this.userInfo.is_default_pws = 1;
+        this.tradeUser.origin_security_password = '';
+        this.tradeUser.new_security_password = '';
       });
     },
   },
@@ -79,14 +126,13 @@ export default {
 .pwd-container {
   padding: 20rpx 20rpx;
   background-color: #f5f5f5;
-  min-height: 100vh;
 }
 
 .section {
   margin-bottom: 60rpx;
   background-color: #ffffff;
   border-radius: 12rpx;
-  padding: 30rpx 0rpx 0rpx;
+  padding: 30rpx 0rpx 30rpx;
   margin-bottom: 30rpx;
   position: relative;
 

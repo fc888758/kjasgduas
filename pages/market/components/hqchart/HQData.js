@@ -1,11 +1,13 @@
 import { getBaseURL } from '../../../../common/http/config';
-import { stockKlineApi } from '@/api';
 const baseURL = getBaseURL();
+import { api } from '@/api';
 function HQData() {}
 
 HQData.Explain = '本地测试数据';
 
 HQData.NetworkFilter = function (data, callback, stock_id) {
+    console.log('HQData.NetworkFilter', data);
+
     //console.log(`[HQData::NetworkFilter] ${HQData.Explain}`, data);
 
     switch (data.Name) {
@@ -110,9 +112,12 @@ HQData.RequestHistoryData = function (data, callback, stock_id) {
     let datas = uni.getStorageSync('storage_data');
     //拼接请求参数
     let params = {
-        stock_id: '5370',
+        stock_id: stock_id || '5730', // 使用传入的stock_id参数，如果没有则使用默认值
         type: '',
     };
+
+    console.log(period, '=======');
+
     switch (period) {
         case 0:
             params.type = 'day';
@@ -127,10 +132,10 @@ HQData.RequestHistoryData = function (data, callback, stock_id) {
             params.type = '5min';
             break;
         default:
-            params.type = '1day';
+            params.type = '1min';
             break;
     }
-    stockKlineApi(params).then(recvData => {
+    api.stockKlineApi(params).then(recvData => {
         HQData.RecvHistoryData(recvData, callback, {
             Data: data,
             Obj: obj,
@@ -236,7 +241,7 @@ HQData.RequestHistoryMinuteData = function (data, callback, stock_id) {
     }
     console.log(params, 'params=============');
 
-    stockKlineApi(params).then(recvData => {
+    api.stockKlineApi(params).then(recvData => {
         console.log(data);
 
         HQData.RecvHistoryMinuteData(recvData, callback, {
@@ -358,9 +363,9 @@ HQData.GetKLineApiUrl = function (symbol, period, right, option) {
 
     if (option && option.Update == true) {
         var beginDate = option.End;
-        var url = baseURL + `/api/market/stockKline?stock_id=5390&type=1h`;
+        var url = baseURL + `/api/market/stockKline`;
     } else {
-        var url = baseURL + `/api/market/stockKline?stock_id=5390&type=1h`;
+        var url = baseURL + `/api/market/stockKline`;
     }
 
     return {
@@ -472,9 +477,9 @@ HQData.GetMinuteKLineApiUrl = function (symbol, period, right, option) {
     if (option && option.Update == true) {
         var beginDate = option.End;
 
-        var url = baseURL + `/api/market/stockKline?stock_id=5390&type=1h`;
+        var url = baseURL + `/api/market/stockKline`;
     } else {
-        var url = baseURL + `/api/market/stockKline?stock_id=5390&type=1h`;
+        var url = baseURL + `/api/market/stockKline`;
     }
 
     return {

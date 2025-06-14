@@ -377,7 +377,7 @@
                     IsShow: true,
                     DragMode: 1,
                     Right: 1, //复权 0 不复权 1 前复权 2 后复权
-                    Period: 0, //周期: 0 日线 1 周线 2 月线 3 年线
+                    Period: 4, //周期: 0 日线 1 周线 2 月线 3 年线 4 1分钟 5 5分钟
                     PageSize: 6,
                     IsShowTooltip: false,
                     DrawType: 0,
@@ -394,7 +394,9 @@
                 TestData: '',
                 kPeriodAry: DefaultData.GetKLineDayPeriodMenu(),
                 KLineID: 'HQChart_' + DefaultData.CreateGuid(),
-                indexKPeriod: 2,
+                indexKPeriod: 0,
+                isLoading: false,
+                lastOperationTime: 0,
             };
         },
 
@@ -406,7 +408,7 @@
             //this.CreateMinuteChart()
         },
         mounted() {
-            console.log(this.stock_id, '----------stock_id');
+            //console.log(this.stock_id, '----------stock_id');
 
             stock_id = this.stock_id;
             this.initChart();
@@ -437,8 +439,33 @@
 
         methods: {
             ChangekPeriod(id, index) {
-                this.ChangeKLinePeriod(parseInt(id));
+                console.log(id, '=========');
+                // 检查操作频率
+                const now = Date.now();
+                if (now - this.lastOperationTime < 2000) {
+                    // 2秒内不允许重复操作
+                    uni.showToast({
+                        title: '操作频繁，请稍后再试',
+                        icon: 'none',
+                    });
+                    return;
+                }
+                // 设置新周期
+                this.KLine.Period = parseInt(id);
+                // 确保 Option 中的 Period 与 KLine.Period 一致
+                this.KLine.Option.KLine.Period = this.KLine.Period;
                 this.indexKPeriod = index;
+
+                this.ChangeKLinePeriod(parseInt(id));
+                // 获取图表实例
+                var jsChart = this.GetJSChart();
+                if (jsChart) {
+                    // 直接调用图表库的方法切换周期
+                    jsChart.ChangePeriod(parseInt(id));
+                } else {
+                    // 如果图表不存在，创建新图表
+                    this.CreateKLineChart();
+                }
             },
             bindPeriodChange(e) {
                 // console.log('分钟周期：', e)
@@ -451,9 +478,11 @@
             },
             // 初始化图表
             async initChart() {
+                console.log('initChart被调用，当前stock_id:', this.stock_id);
                 uni.getSystemInfo({
                     success: res => {
                         this.$nextTick(() => {
+                            console.log('准备初始化图表，当前stock_id:', this.stock_id);
                             this.OnSize();
                             this.CreateKLineChart();
                         });
@@ -513,7 +542,15 @@
                 HQChart.JSChart.SetStyle(whiteStyle);
                 this.$refs.kline.style.backgroundColor = whiteStyle.BGColor;
 
+                // 使用stock_id作为Symbol，确保K线图能正确加载
+                if (this.stock_id) {
+                    this.Symbol = this.stock_id;
+                    console.log('设置Symbol为stock_id:', this.stock_id);
+                }
+
                 this.KLine.Option.Symbol = this.Symbol;
+                console.log('初始化K线图，Symbol:', this.Symbol);
+
                 let chart = HQChart.JSChart.Init(this.$refs.kline);
                 this.KLine.Option.NetworkFilter = this.NetworkFilter;
                 chart.SetOption(this.KLine.Option);
@@ -544,6 +581,12 @@
                 var blackStyle = JSCommonHQStyle.GetStyleConfig(JSCommonHQStyle.STYLE_TYPE_ID.BLACK_ID);
                 //blackStyle.DefaultTextColor='rgb(255,0,255)';
 
+                // 使用stock_id作为Symbol，确保K线图能正确加载
+                if (this.stock_id) {
+                    this.Symbol = this.stock_id;
+                    console.log('APP环境设置Symbol为stock_id:', this.stock_id);
+                }
+
                 JSCommon.JSChart.SetStyle(blackStyle);
                 g_KLine.JSChart = JSCommon.JSChart.Init(element);
                 this.KLine.Option.NetworkFilter = this.NetworkFilter;
@@ -570,10 +613,18 @@
             OnCreateHQChart(chart) {},
 
             CreateKLineChart() {
+                console.log('CreateKLineChart被调用，当前stock_id:', this.stock_id);
+                this.KLine.Option.KLine.Period = this.KLine.Period;
                 this.ChartType = 'KLine';
 
                 // #ifdef H5
+                console.log('H5环境，调用CreateKLineChart_h5');
                 return this.CreateKLineChart_h5();
+                // #endif
+
+                // #ifndef H5
+                console.log('非H5环境，调用CreateKLineChart_app');
+                this.CreateKLineChart_app();
                 // #endif
             },
             GetJSChart() {
@@ -583,7 +634,10 @@
 
             //K线周期切换
             ChangeKLinePeriod(period) {
+                console.log(period, '默认');
+
                 var jsChart = this.GetJSChart();
+                this.KLine.Period = period;
                 this.KLine.Option.KLine.Period = period;
                 console.log(this.KLine);
 
@@ -704,6 +758,9 @@
             },
 
             NetworkFilter: async function (data, callback) {
+                console.log('111111111');
+                console.log(data);
+
                 //console.log(`[HQChart:NetworkFilter] Name=${data.Name} Explain=${data.Explain}`);
                 if (data.Name == 'APIScriptIndex::ExecuteScript') {
                     this.CustomIndex(data, callback);
@@ -748,7 +805,9 @@
                     //    callback(apiData);
                     //}, 200);
 
-                    const r = await stockKlineApi({ stock_id: '5730', type: 'day' });
+                    // 使用this.stock_id代替硬编码的股票ID
+                    console.log('请求K线数据，使用stock_id:', this.stock_id);
+                    const r = await this.$api.stockKlineApi({ stock_id: this.stock_id || '5730', type: 'day' });
                     callback(r);
                 }
             },
@@ -854,6 +913,7 @@
 <style lang="scss" scoped>
     .main-content {
         height: 850rpx;
+        background: #fff;
     }
     .chart-container {
         width: 100%;

@@ -80,6 +80,10 @@ import navigationMixin from '@/common/utils/navigation.js';
 export default {
     mixins: [navigationMixin],
     onShow: function () {
+        if (uni.getStorageSync('userToken')) {
+            this.$modal.msgError('您已经登录')
+            this.$tab.navigateBack();
+        }
         this.sundryData = uni.getStorageSync('sundryData')
     },
     data() {
@@ -104,10 +108,9 @@ export default {
             },
         };
     },
-
     methods: {
         goBack() {
-            uni.navigateBack();
+            this.$tab.navigateBack();
         },
         switchToLogin() {
             this.isLogin = true;
@@ -127,101 +130,91 @@ export default {
         handleLogin() {
             // 验证用户协议
             if (!this.agreeToTerms) {
-                this.$modal.showToast('请先同意用户协议和隐私政策');
+                this.$modal.msgError('请先同意用户协议和隐私政策');
                 return;
             }
 
             // 验证手机号
             if (!this.loginForm.mobile) {
-                this.$modal.showToast('请输入手机号码');
+                this.$modal.msgError('请输入手机号码');
                 return;
             }
 
             // 验证手机号格式
             if (!/^1[3-9]\d{9}$/.test(this.loginForm.mobile)) {
-                this.$modal.showToast('请输入正确的手机号码');
+                this.$modal.msgError('请输入正确的手机号码');
                 return;
             }
 
             // 验证密码
             if (!this.loginForm.password) {
-                this.$modal.showToast('请输入密码');
+                this.$modal.msgError('请输入密码');
                 return;
             }
 
             // 验证密码长度
             if (this.loginForm.password.length < 6) {
-                this.$modal.showToast('密码长度不能少于6位');
+                this.$modal.msgError('密码长度不能少于6位数');
                 return;
             }
+
+            // 显示加载提示
             this.$modal.loading('登录中...');
 
             // 实现登录逻辑
-            this.$api.login(this.loginForm).then(res => {
-                uni.setStorageSync('App-Token', res.token);
-
-                // 登录成功后
-                const pages = getCurrentPages();
-                const prevPage = uni.getStorageSync('prevPage') || '/pages/index';
-                console.log('当前页面:', pages.length > 0 ? pages[pages.length - 1].route : '');
+            this.$api.checkIn(this.loginForm).then(res => {
                 this.$modal.closeLoading();
-                // 如果有上一页，则回退；否则跳转到首页
-                if (pages.length > 1) {
-                    uni.navigateBack();
-                } else {
-                    this.$modal.msgSuccess('登录成功');
-                    uni.redirectTo({
-                        url: prevPage,
-                    });
-                }
+                uni.setStorageSync('userToken', res.token);
+                this.$modal.msgSuccess('登录成功');
+                this.$tab.redirectTo('/pages/mine/index');
             });
         },
         handleRegister() {
             // 验证用户协议
             if (!this.agreeToTerms) {
-                this.$modal.showToast('请先同意用户协议和隐私政策');
+                this.$modal.msgError('请先同意用户协议和隐私政策');
                 return;
             }
 
             // 验证手机号
             if (!this.registerForm.mobile) {
-                this.$modal.showToast('请输入手机号码');
+                this.$modal.msgError('请输入手机号码');
                 return;
             }
 
             // 验证手机号格式
             if (!/^1[3-9]\d{9}$/.test(this.registerForm.mobile)) {
-                this.$modal.showToast('请输入正确的手机号码');
+                this.$modal.msgError('请输入正确的手机号码');
                 return;
             }
 
             // 验证密码
             if (!this.registerForm.password) {
-                this.$modal.showToast('请输入密码');
+                this.$modal.msgError('请输入密码');
                 return;
             }
 
             // 验证密码长度和强度
             if (this.registerForm.password.length < 6) {
-                this.$modal.showToast('密码长度不能少于6位');
+                this.$modal.msgError('密码长度不能少于6位数');
                 return;
             }
 
             // 验证确认密码
             if (!this.registerForm.confirmPassword) {
-                this.$modal.showToast('请输入确认密码');
+                this.$modal.msgError('请输入确认密码');
                 return;
             }
 
             // 验证两次密码是否一致
             if (this.registerForm.password !== this.registerForm.confirmPassword) {
-                this.$modal.showToast('两次输入的密码不一致');
+                this.$modal.msgError('两次输入的密码不一致');
                 return;
             }
 
             // 验证邀请码（如果必填）
-            if (this.registerForm.invite === '') {
-                this.$modal.showToast('请输入邀请码');
+            if (this.registerForm.invite === '' && this.sundryData.is_invite == 1) {
+                this.$modal.msgError('请输入邀请码');
                 return;
             }
 
@@ -232,33 +225,21 @@ export default {
             const params = {
                 mobile: this.registerForm.mobile,
                 password: this.registerForm.password,
-                inviteCode: this.registerForm.invite,
+                invite: this.registerForm.invite,
                 tab: 'register', // 标识这是注册请求
             };
 
             // 调用注册API
-            this.$api.register(params)
+            this.$api.checkIn(params)
                 .then(res => {
-                    uni.hideLoading();
+                    this.$modal.closeLoading();
+                    uni.setStorageSync('userToken', res.token);
                     this.$modal.msgSuccess('注册成功');
-                    // 注册成功后自动切换到登录页面
-                    setTimeout(() => {
-                        this.isLogin = true;
-                        // 可以自动填充刚注册的手机号
-                        this.loginForm.mobile = this.registerForm.phone;
-                        this.register = false;
-                    }, 1500);
-                })
-                .catch(err => {
-                    uni.hideLoading();
-                    this.registerForm.mobile = '';
-                    this.registerForm.password = '';
-                    this.registerForm.confirmPassword = '';
-                    console.error('注册错误：', err);
+                    this.$tab.redirectTo('/pages/mine/index');
                 });
         },
         viewAgreement(type) {
-            this.navigateTo('/pages/mine/agreement?type=' + type);
+            this.$tab.navigateTo('/pages/mine/agreement?type=' + type);
         },
     },
 };

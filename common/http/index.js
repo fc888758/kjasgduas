@@ -4,7 +4,7 @@ class HttpRequest {
     constructor() {
         this.queue = {}; // 请求队列
         this.pendingRequests = new Map(); // 用于存储pending的请求
-        this.maxRetries = 1; // 最大重试次数
+        this.maxRetries = 0; // 最大重试次数
         this.retryDelay = 1000; // 重试间隔（毫秒）
         this.currentConfig = currentConfig; // 直接使用导入的 currentConfig
     }
@@ -19,6 +19,11 @@ class HttpRequest {
             },
             dataType: 'json',
         };
+        // 添加认证token
+        const token = uni.getStorageSync('userToken');
+        if (token) {
+            config.header['ba-user-token'] = token;
+        }
         return config;
     }
 
@@ -89,9 +94,9 @@ class HttpRequest {
     // 处理未授权
     handleUnauthorized() {
         // 清除本地token
-        uni.removeStorageSync('token');
-        // 跳转登录页
-        uni.navigateTo({ url: '/pages/index' });
+        uni.removeStorageSync('userInfo');
+        uni.removeStorageSync('userToken');
+        uni.redirectTo({ url: '/pages/home/index' });
     }
 
     // 创建请求实例
@@ -154,11 +159,7 @@ class HttpRequest {
         this.removePending(requestKey);
         this.pendingRequests.set(requestKey, controller);
 
-        // 添加认证token
-        const token = uni.getStorageSync('App-Token');
-        if (token) {
-            config.header['ba-user-token'] = token;
-        }
+
 
         // 添加到请求队列
         this.queue[config.url] = { timestamp: Date.now() };
@@ -184,22 +185,29 @@ class HttpRequest {
                             // 处理业务状态码
                             if (statusCode === 200) {
                                 if (data.code === 1) {
+                                    if (data.msg !== 'success') {
+                                        uni.showToast({
+                                            title: data.msg,
+                                            icon: 'success',
+                                        });
+                                    }
                                     resolve(data.data);
                                 } else if (data.code === 401 || data.code == 302) {
                                     // 在跳转到登录页面时记录来源
                                     const prevPage = getCurrentPages()[getCurrentPages().length - 1].route;
+                                    uni.removeStorageSync('userToken')
+                                    uni.removeStorageSync('userInfo')
                                     uni.setStorageSync('prevPage', prevPage);
                                     // 跳转到登录页面
                                     uni.reLaunch({
-                                        url: '/pages/login',
+                                        url: '/pages/mine/login',
                                     });
-                                    reject('无效的会话，或者会话已过期，请重新登录。');
+                                    resolve(data.data);
                                 } else if (data.code == 0) {
                                     // 业务错误直接显示错误信息，不抛出错误
                                     uni.showToast({
                                         title: data.msg || '业务处理失败',
-                                        icon: 'none',
-                                        duration: 3000,
+                                        icon: 'none'
                                     });
                                 }
                             } else {
@@ -304,27 +312,26 @@ class HttpRequest {
 
     // 文件上传
     upload(options) {
-        const { url, filePath, name = 'file', formData = {}, onProgress } = options;
+        const { url = '/api/ajax/upload', filePath, name = 'file', formData = {}, onProgress } = options;
         const baseURL = getBaseURL();
 
         return new Promise((resolve, reject) => {
             const uploadTask = uni.uploadFile({
-                url: url.startsWith('http') ? url : baseURL + url,
-                filePath,
-                name,
-                formData,
+                url: baseURL + url,
+                filePath: filePath,
+                name: name,
+                formData: formData,
                 header: {
                     ...this.getInsideConfig().header,
-                    'Content-Type': 'multipart/form-data',
                 },
                 success: res => {
                     if (res.statusCode === 200) {
                         try {
                             const data = JSON.parse(res.data);
-                            if (data.code === 0) {
-                                resolve(data.data);
+                            if (data.code === 1) {
+                                resolve(data.data.file)
                             } else {
-                                reject(new Error(data.message || '上传失败'));
+                                resolve(data.msg || '上传失败');
                             }
                         } catch (e) {
                             reject(new Error('解析响应数据失败'));

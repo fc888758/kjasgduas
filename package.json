@@ -11,6 +11,7 @@
   "description": "",
   "dependencies": {
     "hqchart": "^1.1.14929",
-    "uview-plus": "^3.4.38"
+    "uview-plus": "^3.4.38",
+    "vue-router": "2.8.1"
   }
 }
