@@ -37,6 +37,13 @@
             }
         },
         {
+            "path": "pages/mine/customerService",
+            "style": {
+                "navigationBarTitleText": "在线客服",
+                "navigationStyle": "custom"
+            }
+        },
+        {
             "path": "pages/home/inputSearch",
             "style": {
                 "navigationBarTitleText": "搜索",

@@ -130,16 +130,12 @@
                     cancelText: '取消',
                     success: res => {
                         if (res.confirm) {
-                            // 可以根据实际需求实现，例如：
-                            // 1. 跳转到客服页面
+                            let serviceUrl = 'https://www.baidu.com';
 
-                            // 2. 拨打客服电话
-                            // uni.makePhoneCall({
-                            //     phoneNumber: '400-xxx-xxxx'
-                            // });
-
-                            // 3. 打开在线客服系统
-                            this.$module.showLoading('正在连接客服');
+                            // 跳转到客服页面并传递URL参数
+                            uni.navigateTo({
+                                url: `/pages/mine/customerService?url=${encodeURIComponent(serviceUrl)}`,
+                            });
                         }
                     },
                 });
