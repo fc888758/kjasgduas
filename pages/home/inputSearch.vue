@@ -165,7 +165,7 @@ export default {
                         this.$modal.msg('暂无结果');
                     }
                 });
-            }, 1000);
+            }, 3000);
             
         },
 
