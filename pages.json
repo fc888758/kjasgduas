@@ -122,7 +122,7 @@
             }
         },
         {
-            "path": "pages/market/components/vipResearch",
+            "path": "pages/market/vipResearch",
             "style": {
                 "navigationBarTitleText": "VIP调研票",
                 "navigationBarBackgroundColor": "#ffffff"

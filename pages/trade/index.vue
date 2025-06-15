@@ -59,8 +59,122 @@
                 </view>
             </view>
 
+            <!-- 申购记录状态筛选 -->
+            <!--<view class="purchase-filter" v-if="currentNav === 3">
+                <view
+                    class="filter-btn"
+                    :class="{ active: purchaseStatus === 'pending' }"
+                    @click="setPurchaseStatus('pending')"
+                >
+                    <text>待中签</text>
+                </view>
+                <view
+                    class="filter-btn"
+                    :class="{ active: purchaseStatus === 'confirmed' }"
+                    @click="setPurchaseStatus('confirmed')"
+                >
+                    <text>中签待认购</text>
+                </view>
+                <view
+                    class="filter-btn"
+                    :class="{ active: purchaseStatus === 'notWin' }"
+                    @click="setPurchaseStatus('notWin')"
+                >
+                    <text>未中签</text>
+                </view>
+                <view
+                    class="filter-btn"
+                    :class="{ active: purchaseStatus === 'partial' }"
+                    @click="setPurchaseStatus('partial')"
+                >
+                    <text>部分回购</text>
+                </view>
+                <view
+                    class="filter-btn"
+                    :class="{ active: purchaseStatus === 'all' }"
+                    @click="setPurchaseStatus('all')"
+                >
+                    <text>全部回购</text>
+                </view>
+            </view>-->
+            <up-tabs
+                :list="list1"
+                :activeStyle="{
+                    color: '#deb36f',
+                    fontWeight: 'bold',
+                    transform: 'scale(1.05)',
+                }"
+                :scrollable="false"
+                lineColor="#deb36f"
+                keyName="name"
+                @click="setPurchaseStatus"
+                v-if="currentNav == 0 || currentNav == 1"
+            ></up-tabs>
+            <up-tabs
+                :list="list2"
+                :activeStyle="{
+                    color: '#deb36f',
+                    fontWeight: 'bold',
+                    transform: 'scale(1.05)',
+                }"
+                :scrollable="false"
+                lineColor="#deb36f"
+                keyName="name"
+                @click="setPurchaseStatus"
+                v-if="currentNav == 2"
+            ></up-tabs>
+            <up-tabs
+                :list="list3"
+                :activeStyle="{
+                    color: '#deb36f',
+                    fontWeight: 'bold',
+                    transform: 'scale(1.05)',
+                }"
+                lineColor="#deb36f"
+                keyName="name"
+                @click="setPurchaseStatus"
+                v-if="currentNav == 3"
+            ></up-tabs>
+
+            <!-- 申购记录列表 -->
+            <view class="main">
+                <view class="purchase-records" v-if="currentNav === 3 && !showEmptyData">
+                    <view class="record-item">
+                        <view class="record-header">
+                            <view class="stock-info">
+                                <text class="stock-name">新恒汇</text>
+                                <text class="stock-code">301678</text>
+                            </view>
+                            <view class="stock-exchange">深圳证券交易所</view>
+                        </view>
+                        <view class="record-details">
+                            <view class="detail-row">
+                                <text class="detail-label">申购时间</text>
+                                <text class="detail-value">2025-06-15 11:20:08</text>
+                            </view>
+                            <view class="detail-row">
+                                <text class="detail-label">申购价格</text>
+                                <text class="detail-value">12.8</text>
+                            </view>
+                            <view class="detail-row">
+                                <text class="detail-label">申购次数</text>
+                                <text class="detail-value">1</text>
+                            </view>
+                        </view>
+                        <view class="record-action">
+                            <view class="action-btn" @click="viewOrderDetail">
+                                <text>订单详情</text>
+                            </view>
+                        </view>
+                    </view>
+                </view>
+            </view>
+
             <!-- 暂无数据提示 -->
-            <view class="empty-data" v-if="showEmptyData">
+            <view
+                class="empty-data"
+                v-if="showEmptyData && (currentNav !== 3 || (currentNav === 3 && !hasPurchaseRecords))"
+            >
                 <text>暂无数据</text>
             </view>
         </view>
@@ -79,11 +193,55 @@
                 navItems: ['当前持仓', '历史持仓', '新股持仓', '申购记录'],
                 currentNav: 0,
                 showEmptyData: true,
+                purchaseStatus: 'pending', // 默认选中待中签
+                hasPurchaseRecords: true, // 是否有申购记录
+                purchaseRecords: [], // 申购记录数据
+                list1: [
+                    { name: '普通', id: 'normal' },
+                    { name: '配售', id: 'placement' },
+                    { name: '调研', id: 'research' },
+                    { name: '折扣', id: 'discount' },
+                ],
+                list2: [
+                    { name: '持仓', id: 'holding' },
+                    { name: '平仓', id: 'closed' },
+                ],
+                list3: [
+                    { name: '待中签', id: 'pending' },
+                    { name: '中签待认购', id: 'confirmed' },
+                    { name: '未中签', id: 'notWin' },
+                    { name: '中签已认缴', id: 'paid' },
+                    { name: '部分回购', id: 'partial' },
+                    { name: '全部回购', id: 'all' },
+                ],
             };
         },
         methods: {
             handleNavClick(index) {
                 this.currentNav = index;
+                if (index === 3) {
+                    // 当切换到申购记录时，显示模拟数据
+                    this.showEmptyData = false;
+                    this.loadPurchaseRecords();
+                } else {
+                    this.showEmptyData = true;
+                }
+            },
+            setPurchaseStatus(status) {
+                this.purchaseStatus = status;
+                this.loadPurchaseRecords();
+            },
+            loadPurchaseRecords() {
+                // 这里可以根据purchaseStatus加载不同状态的申购记录
+                // 模拟数据已经在模板中硬编码，实际应用中应该从API获取
+                this.hasPurchaseRecords = true;
+            },
+            viewOrderDetail() {
+                // 查看订单详情
+                uni.showToast({
+                    title: '查看订单详情',
+                    icon: 'none',
+                });
             },
         },
     };
@@ -154,7 +312,9 @@
         //padding-top: calc(-48px - 18px);
         padding-top: 140rpx;
     }
-
+    .main {
+        padding: 30rpx 0;
+    }
     .account-card {
         position: relative;
         padding: 30rpx;
@@ -282,10 +442,10 @@
 
                 &.active {
                     font-weight: 500;
-                    border: 1px solid #a86400;
+                    border: 1px solid #deb36f;
 
                     text {
-                        color: #a86400;
+                        color: #deb36f;
                         font-weight: 500;
                     }
 
@@ -299,6 +459,118 @@
                         height: 4rpx;
                         background-color: rgba(51, 51, 51, 0.1);
                         border-radius: 2rpx;
+                    }
+                }
+            }
+        }
+
+        /* 申购记录状态筛选 */
+        .purchase-filter {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20rpx;
+            background-color: #fff;
+            border-radius: 10rpx;
+            margin: 20rpx;
+
+            .filter-btn {
+                padding: 10rpx 20rpx;
+                border-radius: 30rpx;
+                margin: 10rpx;
+                background-color: #f5f5f5;
+                border: 1px solid #f5f5f5;
+
+                text {
+                    font-size: 24rpx;
+                    color: #666;
+                }
+
+                &.active {
+                    background-color: rgba(222, 179, 111, 0.1);
+                    border: 1px solid #deb36f;
+
+                    text {
+                        color: #deb36f;
+                        font-weight: 500;
+                    }
+                }
+            }
+        }
+
+        /* 申购记录列表 */
+        .purchase-records {
+            padding: 0 20rpx;
+
+            .record-item {
+                background-color: #fff;
+                border-radius: 10rpx;
+                padding: 20rpx;
+                margin-bottom: 20rpx;
+                box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+
+                .record-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding-bottom: 20rpx;
+                    border-bottom: 1px solid #f5f5f5;
+
+                    .stock-info {
+                        .stock-name {
+                            font-size: 32rpx;
+                            font-weight: bold;
+                            color: #333;
+                            margin-right: 10rpx;
+                        }
+
+                        .stock-code {
+                            font-size: 24rpx;
+                            color: #666;
+                        }
+                    }
+
+                    .stock-exchange {
+                        font-size: 24rpx;
+                        color: #deb36f;
+                    }
+                }
+
+                .record-details {
+                    padding: 20rpx 0;
+
+                    .detail-row {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-bottom: 10rpx;
+
+                        .detail-label {
+                            font-size: 28rpx;
+                            color: #666;
+                        }
+
+                        .detail-value {
+                            font-size: 28rpx;
+                            color: #333;
+                            font-weight: 500;
+                        }
+                    }
+                }
+
+                .record-action {
+                    display: flex;
+                    justify-content: flex-end;
+                    padding-top: 20rpx;
+                    border-top: 1px solid #f5f5f5;
+
+                    .action-btn {
+                        padding: 10rpx 30rpx;
+                        background-color: #deb36f;
+                        border-radius: 30rpx;
+
+                        text {
+                            font-size: 24rpx;
+                            color: #fff;
+                        }
                     }
                 }
             }

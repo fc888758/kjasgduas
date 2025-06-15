@@ -148,9 +148,24 @@ export default {
             method: 'get',
             data: params,
         }),
+    // 公开招募下单
     addIpoOrder: params =>
         http.request({
             url: buildUrl('/api/market/addIpoOrder'),
+            method: 'post',
+            data: params,
+        }),
+    // 涨停股票列表
+    getFastTradingStocks: params =>
+        http.request({
+            url: buildUrl('/api/market/getFastTradingStocks'),
+            method: 'get',
+            data: params,
+        }),
+    // 涨停股票下单
+    addFastTradingOrder: params =>
+        http.request({
+            url: buildUrl('/api/market/addFastTradingOrder'),
             method: 'post',
             data: params,
         }),
