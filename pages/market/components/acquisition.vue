@@ -28,188 +28,181 @@
                         </view>
                     </view>
                 </view>
+                <view class="pagination-container">
+                    <u-pagination :current-page="currentPage" :page-size="pageSize" :total="total"
+                        layout="prev, pager, next" @current-change="fetchAcquisitionData" />
+                </view>
             </view>
 
             <!-- 暂无数据提示 -->
-            <view v-else class="no-data">
-                <text>暂无数据</text>
-            </view>
+            <up-empty mode="list" text="暂无数据" v-else></up-empty>
         </view>
     </view>
 </template>
 
 <script>
-    import exchangeTag from '@/components/exchangeTag.vue';
-    export default {
-        components: { exchangeTag },
-        name: 'AcquisitionModule',
-        data() {
-            return {
-                acquisitionList: [
-                    {
-                        name: '包钢股份',
-                        code: '600010',
-                        marketTag: 'SH',
-                        price: '0.27',
-                        totalAmount: '1200.00万',
-                    },
-                    // 可以添加更多数据
-                ],
+import exchangeTag from '@/components/exchangeTag.vue';
+export default {
+    components: { exchangeTag },
+    name: 'AcquisitionModule',
+    data() {
+        return {
+            total: 0,
+            pageSize: 10,
+            currentPage: 1,
+            acquisitionList: [],
+        };
+    },
+    computed: {
+        discountPrice() {
+            return item => {
+                if (!item || !item.current || !item.discount) {
+                    return '0.00';
+                }
+                return (parseFloat(item.current) * (item.discount / 10)).toFixed(2);
             };
         },
-        computed: {
-            discountPrice() {
-                return item => {
-                    if (!item || !item.current || !item.discount) {
-                        return '0.00';
-                    }
-                    return (parseFloat(item.current) * (item.discount / 10)).toFixed(2);
-                };
-            },
+    },
+    mounted() {
+        this.fetchAcquisitionData();
+    },
+    methods: {
+        // 获取要约收购数据
+        async fetchAcquisitionData(page = 1) {
+            this.$modal.loading('加载中...');
+            const result = await this.$api.getBlockTradeStocks({ page });
+            this.acquisitionList = result.data;
+            this.total = result.total;
+            this.pageSize = result.per_page;
+            this.currentPage = result.current_page;
+            this.$modal.closeLoading();
         },
-        methods: {
-            // 获取要约收购数据
-            async fetchAcquisitionData() {
-                const r = await this.$api.getBlockTradeStocks({ page: 1 });
-                this.acquisitionList = r.data;
-                console.log(r);
-            },
-            // 处理买入操作
-            handleBuy(item) {
-                this.$tab.navigateTo(
-                    `/pages/market/detail?type=bd&stock_id=${item.market_symbols_id}&bdID=${item.id}&discount=${item.discount}`
-                );
-                console.log('买入', item);
-                // 这里添加买入逻辑
-            },
+        // 处理买入操作
+        handleBuy(item) {
+            this.$tab.navigateTo(
+                `/pages/market/detail?type=bd&stock_id=${item.market_symbols_id}&bdID=${item.id}&discount=${item.discount}`
+            );
         },
-        mounted() {
-            this.fetchAcquisitionData();
-        },
-    };
+    },
+
+};
 </script>
 
 <style lang="scss" scoped>
-    .acquisition-container {
-        background-color: #fff;
-        min-height: 100vh;
+.acquisition-container {
+    background-color: #fff;
 
-        .acquisition-list {
-            padding: 0 10px;
+    .acquisition-list {
+        padding: 0 30rpx;
 
-            .table-header {
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            border-bottom: 1px solid #f0f0f0;
+
+            .header-cell {
+                font-size: 14px;
+                color: #999;
+
+                &.name-code {
+                    flex: 2;
+                    text-align: left;
+                }
+
+                &.current-price {
+                    flex: 1;
+                    text-align: center;
+                }
+
+                &.total-amount {
+                    flex: 1.5;
+                    text-align: center;
+                }
+
+                &.operation {
+                    flex: 1;
+                    text-align: right;
+                }
+            }
+        }
+
+        .data-list {
+            .data-item {
                 display: flex;
                 justify-content: space-between;
+                align-items: center;
                 padding: 15px 0;
                 border-bottom: 1px solid #f0f0f0;
 
-                .header-cell {
-                    font-size: 14px;
-                    color: #999;
-
-                    &.name-code {
-                        flex: 2;
-                        text-align: left;
-                    }
-
-                    &.current-price {
-                        flex: 1;
-                        text-align: center;
-                    }
-
-                    &.total-amount {
-                        flex: 1.5;
-                        text-align: center;
-                    }
-
-                    &.operation {
-                        flex: 1;
-                        text-align: right;
-                    }
-                }
-            }
-
-            .data-list {
-                .data-item {
+                .name-code-cell {
+                    flex: 2;
                     display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 15px 0;
-                    border-bottom: 1px solid #f0f0f0;
+                    flex-direction: column;
 
-                    .name-code-cell {
-                        flex: 2;
-                        display: flex;
-                        flex-direction: column;
-
-                        .stock-name {
-                            font-size: 16px;
-                            color: #333;
-                            margin-bottom: 5px;
-                        }
-
-                        .stock-code {
-                            display: flex;
-                            align-items: center;
-
-                            .market-icon {
-                                width: 20px;
-                                height: 20px;
-                                margin-right: 5px;
-                            }
-
-                            text {
-                                font-size: 12px;
-                                color: #999;
-                            }
-                        }
-                    }
-
-                    .current-price-cell {
-                        flex: 1;
-                        text-align: center;
+                    .stock-name {
                         font-size: 16px;
                         color: #333;
+                        margin-bottom: 5px;
                     }
 
-                    .total-amount-cell {
-                        flex: 1.5;
-                        text-align: center;
-                        font-size: 16px;
-                        color: #333;
-                    }
-
-                    .operation-cell {
-                        flex: 1;
+                    .stock-code {
                         display: flex;
-                        justify-content: flex-end;
+                        align-items: center;
 
-                        .buy-btn {
-                            background: linear-gradient(to right, #f0c78a, #e5a757);
-                            border-radius: 20px;
-                            padding: 8rpx 0;
-                            width: 100%;
-                            height: 60rpx;
-                            text-align: center;
-                            box-sizing: border-box;
+                        .market-icon {
+                            width: 20px;
+                            height: 20px;
+                            margin-right: 5px;
+                        }
 
-                            text {
-                                color: #fff;
-                                font-size: 24rpx;
-                            }
+                        text {
+                            font-size: 12px;
+                            color: #999;
+                        }
+                    }
+                }
+
+                .current-price-cell {
+                    flex: 1;
+                    text-align: center;
+                    font-size: 16px;
+                    color: #333;
+                }
+
+                .total-amount-cell {
+                    flex: 1.5;
+                    text-align: center;
+                    font-size: 16px;
+                    color: #333;
+                }
+
+                .operation-cell {
+                    flex: 1;
+                    display: flex;
+                    justify-content: flex-end;
+
+                    .buy-btn {
+                        background: linear-gradient(to right, #f0c78a, #e5a757);
+                        border-radius: 20px;
+                        padding: 8rpx 0;
+                        width: 100%;
+                        height: 60rpx;
+                        text-align: center;
+                        box-sizing: border-box;
+
+                        text {
+                            color: #fff;
+                            font-size: 24rpx;
                         }
                     }
                 }
             }
 
-            .no-data {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                height: 300px;
-                color: #999;
-                font-size: 14px;
+            .pagination-container {
+                padding: 15px 0;
             }
         }
     }
+}
 </style>

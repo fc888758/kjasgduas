@@ -18,16 +18,12 @@ export default {
                 uni.setNavigationBarTitle({ title: '客服中心' });
                 const sundryData = await this.$api.getSundryData();
                 uni.setStorageSync('sundryData', sundryData);
-                console.log(sundryData.online_service);
                 this.webviewUrl = sundryData.online_service
             } else if (options.url) {
                 uni.setNavigationBarTitle({ title: '在线预览' });
                 this.webviewUrl = decodeURIComponent(options.url);
             }
         }
-    },
-    methods: {
-
     },
 };
 </script>

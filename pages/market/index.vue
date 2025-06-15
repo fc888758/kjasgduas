@@ -8,8 +8,8 @@
             </view>
 
             <view class="nav-icons">
-                <image src="/static/icon/refresh.png" mode="aspectFit" class="icon-headset" />
-                <image src="/static/icon/search.png" mode="aspectFit" class="icon-search" />
+                <image src="/static/icon/refresh.png" mode="aspectFit" @click="goToTab(1)" class="icon-headset" />
+                <image src="/static/icon/search.png" mode="aspectFit" @click="goToTab(2)" class="icon-search" />
             </view>
         </view>
         <!-- 内容区域 -->
@@ -140,8 +140,8 @@
                                 :stock_id="item.id"></StockInfoItem>
                             <!-- 分页控制器 -->
                             <view class="pagination-container">
-                                <u-pagination :current-page="currentPage" :total="total" layout="prev, pager, next"
-                                    @current-change="loadRankingStocks" />
+                                <u-pagination :current-page="currentPage" :page-size="pageSize" :total="total"
+                                    layout="prev, pager, next" @current-change="loadRankingStocks" />
                             </view>
                         </view>
                     </view>
@@ -206,9 +206,9 @@ export default {
             refreshing: false,
             hotAstockData: [],
             rankingStocks: [],
-            currentPage: 1,
             total: 0,
-            totalPage: null,
+            pageSize: 10,
+            currentPage: 1,
             hasMoreData: true,
             loadingMore: false,
         };
@@ -249,6 +249,17 @@ export default {
         this.uninstall();
     },
     methods: {
+        // 跳转操作
+        goToTab(tab) {
+            switch (tab) {
+                case 1:
+                    this.$tab.navigateTo('/pages/mine/webView?type=1');
+                    break;
+                case 2:
+                    this.$tab.navigateTo('/pages/home/inputSearch');
+                    break;
+            }
+        },
         async loadMarketData() {
             this.loading = true;
             try {
@@ -288,6 +299,7 @@ export default {
                 // 直接替换数据，不再合并
                 this.rankingStocks = result;
                 this.total = result.total;
+                this.pageSize = result.per_page;
                 this.currentPage = result.current_page;
                 this.hasMoreData = result.data && result.data.length > 0;
             } catch (error) {
