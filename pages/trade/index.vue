@@ -11,7 +11,6 @@
             </view>
             <view class="right-icons">
                 <image src="/static/icon/refresh.png" mode="aspectFit" class="refresh-icon"></image>
-                <!-- <image src="/static/icon/notification.png" mode="aspectFit" class="notification-icon"></image> -->
             </view>
         </view>
         <view class="account-bg">
@@ -182,7 +181,6 @@
             handleNavClick(index) {
                 this.currentNav = index;
                 if (index === 3) {
-                    // 当切换到申购记录时，显示模拟数据
                     this.showEmptyData = false;
                     this.loadPurchaseRecords();
                 } else {
@@ -194,8 +192,6 @@
                 this.loadPurchaseRecords();
             },
             loadPurchaseRecords() {
-                // 这里可以根据purchaseStatus加载不同状态的申购记录
-                // 模拟数据已经在模板中硬编码，实际应用中应该从API获取
                 this.hasPurchaseRecords = true;
             },
             viewOrderDetail() {
