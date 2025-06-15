@@ -169,4 +169,11 @@ export default {
             method: 'post',
             data: params,
         }),
+    // 普通订单列表
+    getOrdinaryOrder: params =>
+        http.request({
+            url: buildUrl('/api/market/getOrdinaryOrder'),
+            method: 'get',
+            data: params,
+        }),
 };

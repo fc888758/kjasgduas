@@ -59,44 +59,6 @@
                 </view>
             </view>
 
-            <!-- 申购记录状态筛选 -->
-            <!--<view class="purchase-filter" v-if="currentNav === 3">
-                <view
-                    class="filter-btn"
-                    :class="{ active: purchaseStatus === 'pending' }"
-                    @click="setPurchaseStatus('pending')"
-                >
-                    <text>待中签</text>
-                </view>
-                <view
-                    class="filter-btn"
-                    :class="{ active: purchaseStatus === 'confirmed' }"
-                    @click="setPurchaseStatus('confirmed')"
-                >
-                    <text>中签待认购</text>
-                </view>
-                <view
-                    class="filter-btn"
-                    :class="{ active: purchaseStatus === 'notWin' }"
-                    @click="setPurchaseStatus('notWin')"
-                >
-                    <text>未中签</text>
-                </view>
-                <view
-                    class="filter-btn"
-                    :class="{ active: purchaseStatus === 'partial' }"
-                    @click="setPurchaseStatus('partial')"
-                >
-                    <text>部分回购</text>
-                </view>
-                <view
-                    class="filter-btn"
-                    :class="{ active: purchaseStatus === 'all' }"
-                    @click="setPurchaseStatus('all')"
-                >
-                    <text>全部回购</text>
-                </view>
-            </view>-->
             <up-tabs
                 :list="list1"
                 :activeStyle="{
