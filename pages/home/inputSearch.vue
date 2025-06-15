@@ -63,16 +63,16 @@
                                 <exchange-tag class="tag" :exchange="item.exchange"></exchange-tag>
                                 {{ item.name }}
                             </view>
-                            <view class="stock-code">{{ item.code }}</view>
+                            <view class="stock-code">{{ item.symbol }}</view>
                         </view>
-                        <view class="stock-price" :class="{ up: item.change > 0, down: item.change < 0 }">
-                            <view class="price">{{ item.price }}</view>
-                            <view class="change">{{ item.change > 0 ? '+' : '' }}{{ item.change }}%</view>
+                        <view class="stock-price" :class="{ up: item.chg > 0, down: item.chg < 0 }">
+                            <view class="price">{{ item.current }}</view>
+                            <view class="change">{{ item.chg > 0 ? '+' : '' }}{{ item.chg }}%</view>
                         </view>
                     </view>
                     <view class="pagination-container">
                         <u-pagination :current-page="currentPage" :page-size="pageSize" :total="total"
-                            layout="prev, pager, next" @current-change="performSearch" />
+                            layout="prev, pager, next" @current-change="getMarketStocks" />
                     </view>
                 </view>
 
@@ -99,6 +99,7 @@ export default {
     name: 'InputSearch',
     data() {
         return {
+            isShow: 0,
             total: 0,
             timer: null,
             pageSize: 10,
@@ -117,9 +118,11 @@ export default {
         this.onSearch();
     },
     onHide() {
+        this.isShow = 0;
         this.clearTimer();
     },
     onUnload() {
+        this.isShow = 0;
         this.clearTimer();
     },
     methods: {
@@ -132,6 +135,8 @@ export default {
         onSearch() {
             this.searchKeyword = this.searchKeyword.trim()
             if (this.searchKeyword) {
+                this.isShow = 1;
+                console.log(this.isShow);
                 this.performSearch();
             } else {
                 this.clearSearch();
@@ -139,44 +144,39 @@ export default {
         },
 
         // 执行搜索逻辑
-        performSearch(page = 1) {
+        async performSearch(page = 1) {
             // 显示加载状态
             this.$modal.loading('加载中...');
-            this.getMarketStocks(page);
-            this.clearTimer();
-            this.timer = setInterval(() => {
-                this.getMarketStocks(page);
-            }, 3000);
-            // 
-
+            await this.getMarketStocks(page);
+            this.$modal.closeLoading();
         },
         // 请求搜索数据
         async getMarketStocks(page = 1) {
-            await this.$api.getMarketStocks({ page, keyword: this.searchKeyword }).then(res => {
-                if (res.total > 0) {
-                    this.total = res.total
-                    this.pageSize = res.per_page;
-                    this.currentPage = res.current_page
-                    // 将API返回的结果格式化并赋值给searchResults
-                    this.searchResults = res.data.map(item => ({
-                        id: item.id || '',
-                        name: item.name || '',
-                        code: item.symbol || item.code || '',
-                        price: item.price || item.current || '0.00',
-                        change: item.change || item.chg || 0,
-                        exchange: item.exchange,
-                    }));
-                    this.addToHistory(this.searchKeyword);
+            this.clearTimer();
+            const res = await this.$api.getMarketStocks({ page, keyword: this.searchKeyword });
+            if (res.total > 0) {
+                this.total = res.total;
+                this.pageSize = res.per_page;
+                this.currentPage = res.current_page;
+                this.searchResults = res.data;
+                this.addToHistory(this.searchKeyword);
+                if (this.isShow) {
+                    this.timer = setTimeout(() => {
+                        this.getMarketStocks(page);
+                    }, 3000);
                 } else {
                     this.clearSearch();
-                    this.$modal.msg('暂无结果');
                 }
-            });
-            this.$modal.closeLoading();
+            } else {
+                this.clearSearch();
+                this.$modal.msg('暂无结果');
+            }
+
         },
 
         // 清除搜索请求
         clearSearch() {
+            this.isShow = 0;
             this.total = 0;
             this.currentPage = 1;
             this.searchResults = [];
@@ -194,7 +194,7 @@ export default {
         // 选择历史记录
         selectHistory(item) {
             this.searchKeyword = item;
-            this.performSearch();
+            this.onSearch();
         },
 
         // 跳转股票详情

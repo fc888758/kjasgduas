@@ -51,6 +51,8 @@ export default {
             pageSize: 10,
             currentPage: 1,
             acquisitionList: [],
+            isShow: 0,
+            cquisitionTimer: null,
         };
     },
     computed: {
@@ -64,18 +66,36 @@ export default {
         },
     },
     mounted() {
-        this.fetchAcquisitionData();
+        uni.$off('startAllocation');
+        uni.$on('startAllocation', () => {
+            this.isShow = 1;
+            this.handleShowOptional();
+        });
+        uni.$off('endAllocation');
+        uni.$on('endAllocation', () => {
+            this.isShow = 0;
+            this.clearTimer();
+        });
     },
     methods: {
+        async handleShowOptional() {
+            this.$modal.loading('加载中...');
+            await this.fetchAcquisitionData();
+            this.$modal.closeLoading();
+        },
         // 获取要约收购数据
         async fetchAcquisitionData(page = 1) {
-            this.$modal.loading('加载中...');
+            this.clearTimer();
             const result = await this.$api.getBlockTradeStocks({ page });
             this.acquisitionList = result.data;
             this.total = result.total;
             this.pageSize = result.per_page;
             this.currentPage = result.current_page;
-            this.$modal.closeLoading();
+            if (this.isShow) {
+                this.cquisitionTimer = setTimeout(() => {
+                    this.fetchAcquisitionData(page);
+                }, 3000);
+            }
         },
         // 处理买入操作
         handleBuy(item) {
@@ -83,6 +103,12 @@ export default {
                 `/pages/market/detail?type=bd&stock_id=${item.market_symbols_id}&bdID=${item.id}&discount=${item.discount}`
             );
         },
+        clearTimer() {
+            if (this.cquisitionTimer) {
+                clearInterval(this.cquisitionTimer);
+                this.cquisitionTimer = null;
+            }
+        }
     },
 
 };

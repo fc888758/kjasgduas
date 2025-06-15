@@ -27,7 +27,8 @@
                                 <swiper-item v-for="(group, groupIndex) in industryGroups" :key="groupIndex">
                                     <view class="swiper-content">
                                         <view class="index-item" v-for="(item, index) in group" :key="index"
-                                            :class="{ 'up-bg': item.per_chg > 0, 'down-bg': item.per_chg < 0 }">
+                                            :class="{ 'up-bg': item.per_chg > 0, 'down-bg': item.per_chg < 0 }"
+                                            @click="navigateToDetail(item.id)">
                                             <view class="index-name">{{ item.name }}</view>
                                             <view class="index-value"
                                                 :class="{ up: item.per_chg > 0, down: item.per_chg < 0 }">
@@ -85,7 +86,7 @@
                                 <text class="title">热门股票</text>
                             </view>
 
-                            <view class="reload" @click="refreshHotStocks">
+                            <view class="reload" @click="onHotClick">
                                 <u-icon name="reload"></u-icon>
                                 <text class="action"> 换一换</text>
                             </view>
@@ -95,7 +96,7 @@
                             <u-loading-icon v-if="!hotAstockData.length" style="padding: 40rpx 0"></u-loading-icon>
                             <view class="stock-grid-row" v-else>
                                 <view class="stock-grid-item" v-for="(item, index) in hotAstockData.slice(0, 3)"
-                                    :key="index">
+                                    :key="index" @click="navigateToDetail(item.id)">
                                     <view class="stock-name">{{ item.name }}</view>
                                     <view class="stock-price" :class="{ up: item.per_chg > 0, down: item.per_chg < 0 }">
                                         {{ item.current }}</view>
@@ -131,15 +132,14 @@
                                 <text class="header-price">涨跌</text>
                                 <text class="header-change">涨跌幅</text>
                             </view>
-                            <view v-if="loadingMore" class="loading-text">
-                                <u-loading-icon></u-loading-icon>
+                            <view v-if="!rankingStocks.length" class="loading-text"><u-loading-icon></u-loading-icon>
                             </view>
-                            <StockInfoItem v-else v-for="(item, index) in rankingStocks.data" :key="index"
+                            <StockInfoItem v-else v-for="(item, index) in rankingStocks" :key="index"
                                 :stock-name="item.name" :exchange="item.exchange" :stock-code="item.symbol"
                                 :price="item.current" :increase="item.chg" :change-rate="item.per_chg"
                                 :stock_id="item.id"></StockInfoItem>
                             <!-- 分页控制器 -->
-                            <view class="pagination-container">
+                            <view class="pagination-container" v-if="rankingStocks.length > 0">
                                 <u-pagination :current-page="currentPage" :page-size="pageSize" :total="total"
                                     layout="prev, pager, next" @current-change="loadRankingStocks" />
                             </view>
@@ -211,6 +211,10 @@ export default {
             currentPage: 1,
             hasMoreData: true,
             loadingMore: false,
+            marketIndexesTimer: null,
+            hotAstockDataTimer: null,
+            rankingStocksTimer: null,
+            isShow: 0,
         };
     },
     computed: {
@@ -239,16 +243,23 @@ export default {
         },
     },
     onShow() {
-        console.log('onShow');
-
         var marketCurrent = uni.getStorageSync('marketCurrent')
         if (marketCurrent == '') marketCurrent = 0;
+        this.isShow = 1;
         this.handleTabClick(marketCurrent)
     },
     onHide() {
+        this.isShow = 0;
+        this.uninstall();
+    },
+    onUnload() {
+        this.isShow = 0;
         this.uninstall();
     },
     methods: {
+        navigateToDetail(stock_id) {
+            this.$tab.navigateTo('/pages/market/detail?stock_id=' + stock_id);
+        },
         // 跳转操作
         goToTab(tab) {
             switch (tab) {
@@ -261,8 +272,10 @@ export default {
             }
         },
         async loadMarketData() {
+            this.isShow = 1;
             this.loading = true;
             try {
+                this.uninstall();
                 this.getMarketIndexs();
                 this.refreshHotStocks();
                 this.loadRankingStocks(1, true);
@@ -274,70 +287,117 @@ export default {
         },
         // 下拉刷新
         onRefresh() {
+            this.marketIndexes = [];
+            this.hotAstockData = [];
+            this.rankingStocks = [];
+            this.total = 0;
+            this.pageSize = 10;
+            this.currentPage = 1;
             this.refreshing = true;
             this.loadMarketData();
             setTimeout(() => {
                 this.refreshing = false
             }, 500);
         },
+        // 点击换一换
+        onHotClick() {
+            this.hotAstockData = [];
+            this.refreshHotStocks();
+        },
         // 指数股票数据
         async getMarketIndexs() {
-            this.marketIndexes = [];
+            this.clearTimer(1);
             this.marketIndexes = await this.$api.getMarketIndexsApi();
+            if (this.isShow) {
+                this.marketIndexesTimer = setTimeout(() => {
+                    this.getMarketIndexs();
+                }, 3000);
+            }
+
         },
         // 热门股票数据
         async refreshHotStocks() {
-            this.hotAstockData = [];
+            this.clearTimer(2);
             this.hotAstockData = await this.$api.getGlamourStocks();
+            if (this.isShow) {
+                this.hotAstockDataTimer = setTimeout(() => {
+                    this.refreshHotStocks();
+                }, 30000);
+            }
         },
         // 股票排行榜数据
-        async loadRankingStocks(page = 1, reset = false) {
-            if (this.loadingMore && !reset) return;
-            this.loadingMore = true;
-            try {
-                const result = await this.$api.getMarketStocks({ page });
-                // 直接替换数据，不再合并
-                this.rankingStocks = result;
-                this.total = result.total;
-                this.pageSize = result.per_page;
-                this.currentPage = result.current_page;
-                this.hasMoreData = result.data && result.data.length > 0;
-            } catch (error) {
-                console.error('加载排行榜数据失败:', error);
-            } finally {
-                this.loadingMore = false;
+        async loadRankingStocks(page = 1) {
+            this.clearTimer(3);
+            const result = await this.$api.getMarketStocks({ page });
+            this.rankingStocks = result.data;
+            this.total = result.total;
+            this.pageSize = result.per_page;
+            this.currentPage = result.current_page;
+            if (this.isShow) {
+                this.rankingStocksTimer = setTimeout(() => {
+                    this.loadRankingStocks(this.currentPage);
+                }, 3000);
             }
         },
         // 切换行情模块
         handleTabClick(index) {
             this.uninstall()
-            this.currentTab = index;
             if (index == 1) {
-                uni.$emit('addOptional');
+                this.isShow = 0;
+                setTimeout(() => { uni.$emit('startOptional') }, 0)
             } else if (index == 2) {
-                // uni.$emit('startOptional');
+                this.isShow = 0;
             } else if (index == 3) {
-                // uni.$emit('startOptional');
+                this.isShow = 0;
             } else if (index == 4) {
-                // uni.$emit('startOptional');
+                this.isShow = 0;
+                setTimeout(() => { uni.$emit('startAllocation') }, 0)
             } else {
+                this.isShow = 1;
                 this.loadMarketData();
             }
+            this.currentTab = index;
             uni.setStorageSync('marketCurrent', index);
         },
-        // 清除定时器
+        // 卸载页面
         uninstall() {
             const index = this.currentTab
             if (index == 1) {
-                uni.$emit('endOptional');
+                setTimeout(() => { uni.$emit('endOptional') }, 0)
             } else if (index == 2) {
                 // uni.$emit('startOptional');
             } else if (index == 3) {
                 // uni.$emit('startOptional');
             } else if (index == 4) {
+                setTimeout(() => { uni.$emit('endAllocation') }, 0)
                 // uni.$emit('startOptional');
             } else {
-                console.log('清除0');
+                this.clearTimer();
+            }
+        },
+        clearTimer(type = 'all') {
+            if (type == 1 && this.marketIndexesTimer) {
+                clearInterval(this.marketIndexesTimer);
+                this.marketIndexesTimer = null;
+            } else if (type == 2 && this.hotAstockDataTimer) {
+                clearInterval(this.hotAstockDataTimer);
+                this.hotAstockDataTimer = null;
+            } else if (type == 3 && this.rankingStocksTimer) {
+                clearInterval(this.rankingStocksTimer);
+                this.rankingStocksTimer = null;
+            } else if (type == 'all') {
+                if (this.marketIndexesTimer) {
+                    clearInterval(this.marketIndexesTimer);
+                    this.marketIndexesTimer = null;
+                }
+                if (this.hotAstockDataTimer) {
+                    clearInterval(this.hotAstockDataTimer);
+                    this.hotAstockDataTimer = null;
+                }
+                if (this.rankingStocksTimer) {
+                    clearInterval(this.rankingStocksTimer);
+                    this.rankingStocksTimer = null;
+                }
             }
         }
     },

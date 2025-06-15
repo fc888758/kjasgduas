@@ -118,7 +118,7 @@ export default {
     data() {
         return {
             today: '',
-            recruitData: { today: {}, soon: {}, wait: {} },
+            recruitData: { today: [], soon: [], wait: [] },
         };
     },
     mounted() {

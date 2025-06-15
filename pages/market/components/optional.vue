@@ -9,19 +9,22 @@
         </view>
 
         <!-- 股票列表 -->
-        <view class="stock-list" v-if="stockList.length > 0">
+        <view class="stock-list" v-if="total > 0">
             <view class="stock-item" v-for="(item, index) in stockList" :key="index" @click="selectStock(item.id)">
                 <view class="column name-code">
                     <view class="stock-name">{{ item.name }}</view>
                     <view class="stock-code">
                         <exchange-tag class="tag" :exchange="item.exchange"></exchange-tag>
-                        <text>{{ item.code }}</text>
+                        <text>{{ item.symbol }}</text>
                     </view>
                 </view>
-                <view class="column latest" :class="item.priceColor">{{ item.price }}</view>
-                <view class="column change" :class="item.priceColor">{{ item.change }}</view>
+                <view class="column latest" :class="item.chg > 0 ? 'up' : item.chg < 0 ? 'down' : ''">{{ item.current }}
+                </view>
+                <view class="column change" :class="item.chg > 0 ? 'up' : item.chg < 0 ? 'down' : ''">{{ item.chg }}
+                </view>
                 <view class="column change-percent">
-                    <view class="percent-box" :class="item.priceColor">{{ item.changePercent }}</view>
+                    <view class="percent-box" :class="item.chg > 0 ? 'up' : item.chg < 0 ? 'down' : 'ping'">
+                        {{ item.per_chg }}%</view>
                 </view>
             </view>
             <view class="pagination-container">
@@ -51,39 +54,42 @@ export default {
             total: 0,
             pageSize: 10,
             currentPage: 1,
+            isShow: 0,
             stockList: [],
+            stockListTimer: null,
         };
     },
-    mounted() {
-        this.getOptional();
+    async mounted() {
+        uni.$off('startOptional');
+        uni.$on('startOptional', () => {
+            this.isShow = 1;
+            this.handleShowOptional();
+        });
+        uni.$off('endOptional');
+        uni.$on('endOptional', () => {
+            this.isShow = 0;
+            this.clearTimer();
+        });
     },
-    methods: {
-        async getOptional(page = 1) {
-            this.$modal.loading('加载中...');
-            const r = await this.$api.getOptional({ page });
-            if (r.data) {
-                this.stockList = r.data.map(item => {
-                    // 计算涨跌颜色
-                    const priceColor = parseFloat(item.chg) >= 0 ? 'up' : 'down';
-                    // 格式化涨跌幅，添加百分号
-                    const changePercent = item.per_chg ? `${item.per_chg}%` : '0.00%';
 
-                    return {
-                        name: item.name || '',
-                        code: item.symbol || '',
-                        price: item.current || '0.00',
-                        change: item.chg || 0,
-                        changePercent: changePercent,
-                        exchange: item.exchange,
-                        priceColor: priceColor,
-                        id: item.id,
-                    };
-                });
-                this.total = r.total;
-                this.pageSize = r.per_page;
-                this.currentPage = r.current_page;
-            }
+    methods: {
+        async handleShowOptional() {
+            this.$modal.loading('加载中...');
+            await this.getOptional();
             this.$modal.closeLoading();
+        },
+        async getOptional(page = 1) {
+            this.clearTimer();
+            const r = await this.$api.getOptional({ page });
+            this.stockList = r.data;
+            this.total = r.total;
+            this.pageSize = r.per_page;
+            this.currentPage = r.current_page;
+            if (this.isShow) {
+                this.stockListTimer = setTimeout(() => {
+                    this.getOptional(page);
+                }, 3000);
+            }
         },
         addOptional() {
             this.$tab.navigateTo('/pages/home/inputSearch');
@@ -91,6 +97,12 @@ export default {
         selectStock(id) {
             this.$tab.navigateTo(`/pages/market/detail?stock_id=${id}`);
         },
+        clearTimer() {
+            if (this.stockListTimer) {
+                clearInterval(this.stockListTimer);
+                this.stockListTimer = null;
+            }
+        }
     },
 };
 </script>
@@ -193,6 +205,10 @@ export default {
 
                     &.down {
                         background-color: #52c41a;
+                    }
+
+                    &.ping {
+                        background-color: #808080;
                     }
                 }
             }
