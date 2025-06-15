@@ -232,7 +232,6 @@ export default {
 	onShow() {
 		this.getUserInfo();
 		this.sundryData = uni.getStorageSync('sundryData');
-		this.openClose = uni.getStorageSync('openClose');
 		this.isEye();
 	},
 	data() {
@@ -240,7 +239,7 @@ export default {
 			currentIndexTab: 'mine',
 			inputBox: '',
 			totalAssets: '',
-			openClose: false, // 控制是否显示敏感信息（只控制用户名和手机号）
+			openClose: uni.getStorageSync('openClose'), // 控制是否显示敏感信息（只控制用户名和手机号）
 			closure: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEQAAABECAMAAAAPzWOAAAAAflBMVEUAAACampqYmJiWlpaZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmXl5eZmZmYmJiWlpaZmZmZmZmZmZmZmZmZmZmYmJiXl5eZmZmZmZmZmZmZmZmYmJiZmZmZmZmZmZmZmZmYmJiZmZmZmZmYmJiYmJibm5uXl5eZmZmM5OqvAAAAKXRSTlMAwBQF9tLq111Uu/rLcCSNOxnyq4V+YysM3bSdakpE8OPGpZV4Mx4cceUTF9UAAAHCSURBVFjD7dXbcrIwFIbhDxJAAWWngBu0bmr/3P8N/kJwkhCM0OlhnkM6vrNWu7CwLMv6Y9t4X2Gen6t3cyFJGGN5hjlI8PyMA8mZPSWYY8Faawh+++BcY4a4izyUdVpbTNcwNlxn3T2iD0xFdqy1hKzonoUw0kYPAH0UtsE0SyYGkWz44xJTfNPxwUnAK4spjTNr5T8Yqiiv3D/vQsUy+p5c4cKEPBc3HEQZsc7X0tBIPcYd3owZsZ6TYlxVsJfYffMyCJdFrS/S7JnEc00NLt+XFZEOaXH1u+d6RW+ESiguDsk2uRUXJXDx5IreWOEUMDN/BTcQFb3xr1396BsSdOsCSkWfo1WbItEakCs1ei6VG7jza6HDj+/EfYjKDb2T0iB8kHV9Wh2cIOp2cK73xiXnrpUpFQ+9LJIaKPnxgwul15UffPKa31MPt6QsOqLHp/4G53QXLK9N61clVu82azL1PQwxEsFt8OalKTF9i59GIw9+KAQG4pccYzSCa/fTIz7gZ798E6n4Xx86/Qt7hzcR8Pe4gVEq5tUi4uflhH9KX2SwXqhGafZpHye/VBBWg8myfe6lmGvj+xtYlmVZv/AftX5pRYJosQoAAAAASUVORK5CYII=',
 			userToken: '',
 			userInfo: null,
@@ -358,7 +357,7 @@ export default {
 					this.$modal.msgError('保密合同开发中');
 					break;
 				case 12:
-					this.$tab.navigateTo('/pages/mine/webView?type=客服中心&url=' + encodeURIComponent(this.sundryData.online_service));
+					this.$tab.navigateTo('/pages/mine/webView?type=1');
 					break;
 				case 13:
 					if (this.userInfo) {

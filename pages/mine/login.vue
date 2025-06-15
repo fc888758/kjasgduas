@@ -213,7 +213,7 @@ export default {
             }
 
             // 验证邀请码（如果必填）
-            if (this.registerForm.invite === '' && this.sundryData.is_invite == 1) {
+            if (this.registerForm.invite == '' && this.sundryData.is_invite == 1) {
                 this.$modal.msgError('请输入邀请码');
                 return;
             }

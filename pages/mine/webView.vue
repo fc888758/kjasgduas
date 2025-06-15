@@ -1,6 +1,6 @@
 <template>
     <view class="customer-service-container">
-        <web-view class="customer-webview" :src="webviewUrl"></web-view>
+        <web-view class="customer-webview" :src="webviewUrl" v-if="webviewUrl"></web-view>
     </view>
 </template>
 
@@ -9,17 +9,21 @@ export default {
     name: 'CustomerService',
     data() {
         return {
-            webviewUrl: '', // 将从页面参数中获取URL
+            webviewUrl: ''
         };
     },
-    onLoad(options) {
-        if (options.url) {
-            if (options.type) {
-                uni.setNavigationBarTitle({
-                    title: options.type
-                });
+    async onLoad(options) {
+        if (options) {
+            if (options.type == 1) {
+                uni.setNavigationBarTitle({ title: '客服中心' });
+                const sundryData = await this.$api.getSundryData();
+                uni.setStorageSync('sundryData', sundryData);
+                console.log(sundryData.online_service);
+                this.webviewUrl = sundryData.online_service
+            } else if (options.url) {
+                uni.setNavigationBarTitle({ title: '在线预览' });
+                this.webviewUrl = decodeURIComponent(options.url);
             }
-            this.webviewUrl = decodeURIComponent(options.url);
         }
     },
     methods: {

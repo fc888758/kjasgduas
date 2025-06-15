@@ -144,14 +144,12 @@ export default {
             intervalId: null,
             hotNewData: [],
             userInfo: null,
-            sundryData: null,
         };
     },
     onShow() {
         this.getNewsList();
         this.getUserInfo();
         this.getPopularIndustriesApi();
-        this.sundryData = uni.getStorageSync('sundryData');
     },
     async mounted() {
         // 获取header高度
@@ -227,11 +225,7 @@ export default {
                     this.$tab.navigateTo('/pages/trade/index');
                     break;
                 case 10:
-                    if (this.sundryData) {
-                        this.$tab.navigateTo('/pages/mine/webView?type=客服中心&url=' + encodeURIComponent(this.sundryData.online_service));
-                    } else {
-                        this.$modal.msgError('客服不在线');
-                    }
+                    this.$tab.navigateTo('/pages/mine/webView?type=1');
                     break;
                 case 11:
                     this.$tab.navigateTo('/pages/home/newdetail?newId=' + data.newId);
