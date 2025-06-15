@@ -24,9 +24,8 @@
                                 <view class="tag-index" :class="'index-' + (index + 1)">{{ index + 1 }}</view>
                                 <view>{{ item.name }}</view>
                             </view>
-                            <view class="tag-code"><exchange-tag class="tag" :exchange="item.exchange"></exchange-tag>{{
-                                item.code
-                                }}</view>
+                            <view class="tag-code"><exchange-tag class="tag"
+                                    :exchange="item.exchange"></exchange-tag>{{ item.symbol }}</view>
                         </view>
                     </view>
                 </view>
@@ -60,10 +59,10 @@
                         @click="navigateToDetail(item.id)">
                         <view class="stock-info">
                             <view class="stock-name">
-                                <exchange-tag class="tag" :exchange="item.exchange"></exchange-tag>
                                 {{ item.name }}
                             </view>
-                            <view class="stock-code">{{ item.symbol }}</view>
+                            <view class="stock-code"><exchange-tag class="tag"
+                                    :exchange="item.exchange"></exchange-tag>{{ item.symbol }}</view>
                         </view>
                         <view class="stock-price" :class="{ up: item.chg > 0, down: item.chg < 0 }">
                             <view class="price">{{ item.current }}</view>
@@ -244,18 +243,7 @@ export default {
         // 加载热门标签
         async getGlamourStocks() {
             const r = await this.$api.getGlamourStocks();
-            if (r && Array.isArray(r)) {
-                const formattedTags = r.map(item => ({
-                    id: item.id || '',
-                    name: item.name || '',
-                    code: item.symbol || '',
-                    exchange: item.exchange || '',
-                }));
-
-                // 只取前8个结果
-                this.hotSearchTags = formattedTags.slice(0, 8);
-            }
-
+            this.hotSearchTags = r;
         },
     },
 };

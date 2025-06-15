@@ -76,14 +76,7 @@ export default {
         },
         buyStock(stock) {
             // 处理买入操作，可以跳转到交易页面或弹出交易窗口
-            this.$tab.navigateTo(
-                '/pages/trade/index?code=' +
-                this.stock.code +
-                '&name=' +
-                this.stock.name +
-                '&market=' +
-                this.stock.market
-            );
+            this.$tab.navigateTo('/pages/market/detail?type=ftc&stock_id=' + stock.id);
         },
         clearTimer() {
             if (this.stockListTime) {
