@@ -99,9 +99,7 @@ export default {
         },
         // 处理买入操作
         handleBuy(item) {
-            this.$tab.navigateTo(
-                `/pages/market/detail?type=bd&stock_id=${item.market_symbols_id}&bdID=${item.id}&discount=${item.discount}`
-            );
+            this.$tab.navigateTo('/pages/market/detail?type=bd&stock_id=' + item.market_symbols_id + '&bd_id=' + item.id + '&discount=' + item.discount);
         },
         clearTimer() {
             if (this.cquisitionTimer) {

@@ -74,9 +74,8 @@
         },
         methods: {
             goBack() {
-                uni.navigateBack();
+                this.$tab.navigateBack();
             },
-
             async applyStock(ipo_id) {
                 const r = await this.$api.addIpoOrder({ ipo_id });
                 if (r) this.$toast.msgSuccess('申请成功');
