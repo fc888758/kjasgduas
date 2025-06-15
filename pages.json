@@ -58,6 +58,14 @@
             }
         },
         {
+            "path": "pages/market/newStockDetail",
+            "style": {
+                "navigationBarTitleText": "招募详情",
+                "navigationStyle": "custom",
+                "navigationBarBackgroundColor": "#ffffff"
+            }
+        },
+        {
             "path": "pages/mine/pwd/index",
             "style": {
                 "navigationBarTitleText": "修改密码",

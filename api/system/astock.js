@@ -141,4 +141,17 @@ export default {
             method: 'post',
             data: params,
         }),
+    // 公开招募列表
+    getIpoStocks: params =>
+        http.request({
+            url: buildUrl('/api/market/getIpoStocks'),
+            method: 'get',
+            data: params,
+        }),
+    addIpoOrder: params =>
+        http.request({
+            url: buildUrl('/api/market/addIpoOrder'),
+            method: 'post',
+            data: params,
+        }),
 };
