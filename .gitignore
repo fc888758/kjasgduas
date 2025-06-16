@@ -1,2 +1,4 @@
 /unpackage/dist
 /unpackage
+/manifest.json
+/common/http/config.js
