@@ -176,4 +176,32 @@ export default {
             method: 'get',
             data: params,
         }),
+    // 普通订单列表
+    getPlacementOrder: params =>
+        http.request({
+            url: buildUrl('/api/market/getPlacementOrder'),
+            method: 'get',
+            data: params,
+        }),
+    // 涨停订单列表
+    getFastTradingOrder: params =>
+        http.request({
+            url: buildUrl('/api/market/getFastTradingOrder'),
+            method: 'get',
+            data: params,
+        }),
+    // 折价订单列表
+    getBlockTradeOrder: params =>
+        http.request({
+            url: buildUrl('/api/market/getBlockTradeOrder'),
+            method: 'get',
+            data: params,
+        }),
+    // 新股持仓订单列表
+    getIpoOrder: params =>
+        http.request({
+            url: buildUrl('/api/market/getIpoOrder'),
+            method: 'get',
+            data: params,
+        }),
 };

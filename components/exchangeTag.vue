@@ -1,5 +1,5 @@
 <template>
-    <text class="hu" :class="getExchangeClass(exchange)">{{ exchange }}</text>
+    <text class="hu" :class="getExchangeClass(exchange)" v-if="getExchangeClass(exchange)">{{ exchange }}</text>
 </template>
 
 <script>
@@ -22,7 +22,7 @@
                     case '京':
                         return 'hu-bj';
                     default:
-                        return '';
+                        return false;
                 }
             },
         },
