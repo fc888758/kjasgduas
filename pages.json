@@ -163,6 +163,14 @@
                 "navigationBarBackgroundColor": "#f8f8f8",
                 "navigationStyle": "default"
             }
+        },
+        {
+            "path": "pages/trade/detail",
+            "style": {
+                "navigationBarTitleText": "详情",
+                "navigationBarBackgroundColor": "#f8f8f8",
+                "navigationStyle": "default"
+            }
         }
     ],
     "globalStyle": {
