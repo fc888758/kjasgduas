@@ -204,4 +204,32 @@ export default {
             method: 'get',
             data: params,
         }),
+    // 订单详情
+    getOrderdetail: params =>
+        http.request({
+            url: buildUrl('/api/market/getOrderdetail'),
+            method: 'get',
+            data: params,
+        }),
+    // 认缴
+    ipoSubscription: params =>
+        http.request({
+            url: buildUrl('/api/market/IpoSubscription'),
+            method: 'post',
+            data: params,
+        }),
+    // 卖出
+    coverOrdinaryOrder: params =>
+        http.request({
+            url: buildUrl('/api/market/coverOrdinaryOrder'),
+            method: 'post',
+            data: params,
+        }),
+    //新股卖出
+    coverIpoOrder: params =>
+        http.request({
+            url: buildUrl('/api/market/coverIpoOrder'),
+            method: 'post',
+            data: params,
+        }),
 };

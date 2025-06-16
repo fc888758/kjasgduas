@@ -5,9 +5,11 @@
             <view class="left-menu">
                 <image src="/static/icon/menu.png" mode="aspectFit" class="menu-icon"></image>
             </view>
-            <view class="search-input">
+            <view class="search-input" @click="handleSearch">
                 <image src="/static/icon/search.png" mode="aspectFit" class="search-icon"></image>
-                <input type="text" placeholder="输入股票名称/代码" placeholder-class="input-placeholder" />
+                <text type="text" disabled placeholder-class="input-placeholder" style="color: #999">
+                    输入股票名称/代码
+                </text>
             </view>
             <view class="right-icons">
                 <image src="/static/icon/refresh.png" mode="aspectFit" class="refresh-icon"></image>
@@ -72,6 +74,7 @@
 
             <up-tabs
                 :list="list[0]"
+                :current="currentNav[1]"
                 :activeStyle="{
                     color: '#deb36f',
                     fontWeight: 'bold',
@@ -85,6 +88,7 @@
             ></up-tabs>
             <up-tabs
                 :list="list[1]"
+                :current="currentNav[1]"
                 :activeStyle="{
                     color: '#deb36f',
                     fontWeight: 'bold',
@@ -98,6 +102,7 @@
             ></up-tabs>
             <up-tabs
                 :list="list[2]"
+                :current="currentNav[1]"
                 :activeStyle="{
                     color: '#deb36f',
                     fontWeight: 'bold',
@@ -111,6 +116,7 @@
             ></up-tabs>
             <up-tabs
                 :list="list[3]"
+                :current="currentNav[1]"
                 :activeStyle="{
                     color: '#deb36f',
                     fontWeight: 'bold',
@@ -136,17 +142,22 @@
                             <view class="stock-exchange" v-if="item.issue">{{ item.issue }}</view>
                         </view>
                         <view class="record-details">
-                            <view class="detail-row" v-if="item.order_status && item.order_status == 0">
+                            <view
+                                class="detail-row"
+                                v-if="item.order_status == 0 || item.order_status == 2 || item.order_status == 3"
+                            >
                                 <text class="detail-label">状态</text>
+
                                 <text
                                     class="detail-value"
                                     :class="{
-                                        'status-pending': item.order_status === '0',
-                                        'status-notwin': item.order_status === '1',
-                                        'status-all': item.order_status === '2',
+                                        'status-pending': item.order_status === '2',
+                                        'status-notwin': item.order_status === '3',
+                                        'status-all': item.order_status === '3',
                                     }"
-                                    >{{ formatStatus(item.order_status) }}</text
                                 >
+                                    {{ formatStatus(item.order_status) }}
+                                </text>
                             </view>
                             <view class="detail-row" v-if="item.buy_money">
                                 <text class="detail-label">持仓市值</text>
@@ -246,13 +257,13 @@
                             </view>
                         </view>
                         <view class="record-action">
-                            <view class="action-btn" @click="viewOrderDetail">
+                            <view class="action-btn" @click="viewOrderDetail(item)">
                                 <text>订单详情</text>
                             </view>
 
                             <view
                                 class="action-btn sell-btn"
-                                @click="sellStock"
+                                @click="sellStock(item)"
                                 v-if="
                                     (currentNav[0] == 0 && currentNav[1] == 0 && item.order_status == 0) ||
                                     (currentNav[0] == 0 && currentNav[1] == 1 && item.order_status == 1) ||
@@ -265,7 +276,7 @@
                             </view>
                             <view
                                 class="action-btn sell-btn"
-                                @click="sellStock"
+                                @click="ipoSubscription(item)"
                                 v-if="currentNav[0] == 3 && currentNav[1] == 1"
                             >
                                 <text>认缴</text>
@@ -357,7 +368,17 @@
                 ],
             };
         },
-        onLoad() {
+        onLoad({ oneTab, twoTab }) {
+            if ((oneTab || oneTab == 0) && (twoTab || twoTab == 0)) {
+                this.currentNav = [parseInt(oneTab), parseInt(twoTab)];
+                this.getUserInfo();
+                this.loadPurchaseRecords();
+                console.log(9999);
+                console.log(this.currentNav);
+
+                return false;
+            }
+
             // 获取用户信息
             this.getUserInfo();
             this.loadPurchaseRecords();
@@ -367,26 +388,31 @@
         },
         methods: {
             formatStatus(status) {
-                switch (status) {
-                    case '0':
-                        return '待成交';
-                    case '1':
-                        return '未成交';
-                    case '2':
-                        return '已平仓';
-                    default:
-                        return status; // 返回原始值，以防状态码不匹配
+                if (this.currentNav[0] == 1 && this.currentNav[1] == 1) {
+                    switch (status) {
+                        case '2':
+                            return '未中签';
+                        case '3':
+                            return '已平仓';
+                    }
+                }
+                if (
+                    (this.currentNav[0] == 1 && this.currentNav[1] == 2) ||
+                    (this.currentNav[0] == 1 && this.currentNav[1] == 3)
+                ) {
+                    switch (status) {
+                        case '2':
+                            return '未成交';
+                        case '3':
+                            return '已平仓';
+                    }
                 }
             },
             toggleBalanceVisibility() {
                 this.showBalance = !this.showBalance;
             },
             handleDeposit() {
-                uni.showToast({
-                    title: '正在跳转到大额转入页面',
-                    icon: 'none',
-                });
-                // 这里可以添加跳转到充值页面的逻辑
+                this.$tab.navigateTo('/pages/mine/recharge');
                 // uni.navigateTo({
                 //     url: '/pages/mine/recharge'
                 // });
@@ -513,6 +539,7 @@
                         buy_current_price: item?.buy_current_price,
                         sell_current_price: item?.sell_current_price || item?.buy_price,
                         order_status: item?.order_status,
+                        id: item?.id,
                     }));
                     this.hasLoading = false;
                 } else if (this.currentNav[0] === 0 && this.currentNav[1] === 1) {
@@ -541,6 +568,7 @@
                         buyback_amount: item?.buyback_amount,
                         stamp_duty: item?.stamp_duty,
                         order_status: item?.order_status,
+                        id: item?.id,
                     }));
                     this.hasLoading = false;
                 } else if (this.currentNav[0] === 0 && this.currentNav[1] === 2) {
@@ -556,6 +584,7 @@
                         sell_current_price: item?.sell_current_price,
                         buy_current_price: item?.buy_current_price,
                         order_status: item?.order_status,
+                        id: item?.id,
                     }));
                     this.hasLoading = false;
                 } else if (this.currentNav[0] === 0 && this.currentNav[1] === 3) {
@@ -571,6 +600,7 @@
                         sell_current_price: item?.sell_current_price,
                         buy_current_price: item?.buy_current_price,
                         order_status: item?.order_status,
+                        id: item?.id,
                     }));
                     this.hasLoading = false;
                 } else if (this.currentNav[0] === 1 && this.currentNav[1] === 0) {
@@ -596,6 +626,7 @@
                         buyback_price: item?.buyback_price,
                         buyback_amount: item?.buyback_amount,
                         stamp_duty: item?.stamp_duty,
+                        id: item?.id,
                     }));
                     this.hasLoading = false;
                 } else if (this.currentNav[0] === 1 && this.currentNav[1] === 1) {
@@ -623,6 +654,8 @@
                         buyback_price: item?.buyback_price,
                         buyback_amount: item?.buyback_amount,
                         stamp_duty: item?.stamp_duty,
+                        order_status: item?.order_status,
+                        id: item?.id,
                     }));
                     this.hasLoading = false;
                 } else if (this.currentNav[0] === 1 && this.currentNav[1] === 2) {
@@ -638,6 +671,7 @@
                         sell_current_price: item?.sell_current_price,
                         buy_current_price: item?.buy_current_price,
                         order_status: item?.order_status,
+                        id: item?.id,
                     }));
                     this.hasLoading = false;
                 } else if (this.currentNav[0] === 1 && this.currentNav[1] === 3) {
@@ -653,6 +687,7 @@
                         sell_current_price: item?.sell_current_price,
                         buy_current_price: item?.buy_current_price,
                         order_status: item?.order_status,
+                        id: item?.id,
                     }));
                     this.hasLoading = false;
                 } else if (this.currentNav[0] === 2 && this.currentNav[1] === 0) {
@@ -668,6 +703,7 @@
                         sell_current_price: item?.sell_current_price,
                         buy_current_price: item?.buy_current_price,
                         order_status: item?.order_status,
+                        id: item?.id,
                     }));
                     this.hasLoading = false;
                 } else if (this.currentNav[0] === 2 && this.currentNav[1] === 1) {
@@ -683,6 +719,7 @@
                         sell_current_price: item?.sell_current_price,
                         buy_current_price: item?.buy_current_price,
                         order_status: item?.order_status,
+                        id: item?.id,
                     }));
                     this.hasLoading = false;
                 } else if (this.currentNav[0] === 3 && this.currentNav[1] === 0) {
@@ -697,6 +734,7 @@
                         purchase_count: item?.frequency,
                         win_time: item?.audit_time,
                         win_shares: item?.subscribe_number,
+                        id: item?.id,
                     }));
                     this.hasLoading = false;
                 } else if (this.currentNav[0] === 3 && this.currentNav[1] === 1) {
@@ -712,6 +750,7 @@
                         win_time: item?.audit_time,
                         win_shares: item?.subscribe_number,
                         payable_amount: item?.should_price,
+                        id: item?.id,
                     }));
                     this.hasLoading = false;
                 } else if (this.currentNav[0] === 3 && this.currentNav[1] === 2) {
@@ -726,6 +765,7 @@
                         purchase_count: item?.frequency,
                         win_shares: item?.subscribe_number,
                         payable_amount: item?.should_price,
+                        id: item?.id,
                     }));
                     this.hasLoading = false;
                 } else if (this.currentNav[0] === 3 && this.currentNav[1] === 3) {
@@ -741,6 +781,7 @@
                         win_time: item?.audit_time,
                         win_shares: item?.subscribe_number,
                         payable_amount: item?.should_price,
+                        id: item?.id,
                     }));
                     this.hasLoading = false;
                 } else if (this.currentNav[0] === 3 && this.currentNav[1] === 4) {
@@ -761,6 +802,7 @@
                         buyback_amount: item?.buyback_money,
                         paid_amount: item?.already_price,
                         stamp_duty: item?.sell_commission,
+                        id: item?.id,
                     }));
                     this.hasLoading = false;
                 } else if (this.currentNav[0] === 3 && this.currentNav[1] === 5) {
@@ -781,32 +823,63 @@
                         buyback_amount: item?.buyback_money,
                         paid_amount: item?.already_price,
                         stamp_duty: item?.sell_commission,
+                        id: item?.id,
                     }));
                     this.hasLoading = false;
                 }
             },
-            viewOrderDetail() {
+            viewOrderDetail({ id, type }) {
                 // 查看订单详情
-                uni.showToast({
-                    title: '查看订单详情',
-                    icon: 'none',
-                });
+                if (this.currentNav[0] == 0 || this.currentNav[0] == 1) {
+                    this.$tab.navigateTo(`/pages/trade/detail?id=${id}&type=${this.currentNav[1] + 1}`);
+                } else {
+                    this.$tab.navigateTo(`/pages/trade/detail?id=${id}&type=5`);
+                }
             },
-            sellStock() {
-                // 卖出股票
-                uni.showToast({
-                    title: '正在跳转到卖出页面',
-                    icon: 'none',
+            sellStock({ id }) {
+                // 添加确认弹窗
+                this.$modal.confirm('确定要卖出吗？', '卖出确认').then(() => {
+                    // 用户点击确定后执行认缴操作
+                    this.$modal.loading('正在卖出');
+                    if (this.currentNav[0] == 2) {
+                        this.$api.coverIpoOrder({ order_id: id }).then(() => {
+                            this.$modal.closeLoading();
+                            this.$modal.msgSuccess('卖出成功');
+                            this.getUserInfo();
+                            this.loadPurchaseRecords();
+                        });
+                    } else {
+                        this.$api.coverOrdinaryOrder({ order_id: id }).then(() => {
+                            this.$modal.closeLoading();
+                            this.$modal.msgSuccess('卖出成功');
+                            this.getUserInfo();
+                            this.loadPurchaseRecords();
+                        });
+                    }
                 });
-                // 这里可以添加跳转到卖出页面的逻辑
-                // uni.navigateTo({
-                //     url: '/pages/trade/sell'
-                // });
             },
             getUserInfo() {
                 this.$api.getUserInfo().then(res => {
                     this.userInfo = res;
                 });
+            },
+            ipoSubscription({ id }) {
+                // 添加确认弹窗
+                this.$modal.confirm('确定要认缴吗？', '认缴确认').then(() => {
+                    // 用户点击确定后执行认缴操作
+                    this.$modal.loading('正在卖出');
+                    this.$api.ipoSubscription({ order_id: id }).then(() => {
+                        this.$modal.closeLoading();
+                        this.$modal.msgSuccess('认缴成功');
+                        this.getUserInfo();
+                        this.loadPurchaseRecords();
+                    });
+                });
+            },
+            handleSearch() {
+                console.log(999);
+
+                this.$tab.navigateTo('/pages/home/inputSearch');
             },
         },
     };
