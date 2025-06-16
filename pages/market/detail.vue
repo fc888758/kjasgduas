@@ -90,9 +90,9 @@
         </view>
 
         <!-- K线图区域 -->
-        <view class="chart-container">
+        <!-- <view class="chart-container">
             <Hqchart :stock_id="stock_id"></Hqchart>
-        </view>
+        </view> -->
 
         <!-- 五档盘口 -->
         <view class="order-book">
@@ -210,6 +210,7 @@ export default {
             ChartWidth: 0,
             ChartHeight: 0,
             stockDetail: {},
+            userInfo: {},
             isOptional: 0,
             options: null,
             stockDetailTime: null,
@@ -221,7 +222,7 @@ export default {
             await this.initChart();
         });
     },
-    async onLoad(options) {
+    onLoad(options) {
         // 判断是否有股票ID
         if (!options.stock_id) {
             console.log('未知操作1');
@@ -239,6 +240,7 @@ export default {
     },
     async onShow() {
         this.isShow = 1;
+        this.userInfo = uni.getStorageSync('userInfo');
         this.$modal.loading('加载中...');
         await this.getStockDetail();
         await this.isOptionalApi();
@@ -255,6 +257,7 @@ export default {
     methods: {
         // 获取股票详情数据
         async getStockDetail() {
+            this.clearTimer();
             this.stockDetail = await this.$api.stockDetail({ stock_id: this.stock_id });
             if (!this.stockDetail) {
                 console.log('未知操作3');
@@ -269,18 +272,35 @@ export default {
         },
         // 是否收藏
         async isOptionalApi() {
-            this.isOptional = await this.$api.isOptional({ stock_id: this.stock_id });
+            if (this.userInfo) this.isOptional = await this.$api.isOptional({ stock_id: this.stock_id });
         },
         // 添加/取消收藏
         async operateOptional() {
-            this.$modal.loading('操作中...');
-            if (!this.isOptional) {
-                await this.$api.addOptional({ stock_id: this.stock_id });
+            if (!this.userInfo) {
+                uni.showModal({
+                    title: '温馨提示',
+                    content: '您还未进行登录/注册',
+                    cancelText: '取消',
+                    confirmText: '去登录/注册',
+                    success: (res) => {
+                        if (res.confirm) {
+                            this.$tab.navigateTo('/pages/mine/login');
+                            return false;
+                        } else {
+                            return false;
+                        }
+                    }
+                });
             } else {
-                await this.$api.deleteOptional({ stock_id: this.stock_id });
+                this.$modal.loading('操作中...');
+                if (!this.isOptional) {
+                    await this.$api.addOptional({ stock_id: this.stock_id });
+                } else {
+                    await this.$api.deleteOptional({ stock_id: this.stock_id });
+                }
+                this.isOptional = !this.isOptional;
+                this.$modal.closeLoading();
             }
-            this.isOptional = !this.isOptional;
-            this.$modal.closeLoading();
         },
         getChartContainerSize() {
             return new Promise(resolve => {
@@ -354,15 +374,16 @@ export default {
             }
         },
         buy() {
-            const { type, stock_id, discount, bd_id } = this.options;
+            const { type, discount, bd_id } = this.options;
             switch (type) {
                 case 'bd':
-                    this.$tab.navigateTo(
-                        `/pages/trade/buy?stock_id=${stock_id}&type=${type}&bd_id=${bd_id}&discount=${discount}`
-                    );
+                    this.$tab.navigateTo('/pages/trade/buy?type=bd&stock_id=' + this.stock_id + '&bd_id=' + bd_id + '&discount=' + discount);
+                    break;
+                case 'ftc':
+                    this.$tab.navigateTo('/pages/trade/buy?type=ftc&stock_id=' + this.stock_id);
                     break;
                 default:
-                    this.$tab.navigateTo(`/pages/trade/buy?stock_id=${this.stock_id}&type=ordinary`);
+                    this.$tab.navigateTo('/pages/trade/buy?type=ordinary&stock_id=' + this.stock_id);
                     break;
             }
         },
