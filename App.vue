@@ -22,7 +22,7 @@
             }
         },
         onShow: function () {
-            console.log = function () {}; // 关闭console.log
+            // console.log = function () {}; // 关闭console.log
             // console.log('App Show2');
         },
         onHide: function () {

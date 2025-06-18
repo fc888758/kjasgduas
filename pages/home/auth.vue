@@ -25,8 +25,6 @@ export default {
         };
     },
     onLaunch() {
-        console.log('onLaunch');
-        
         const auth = uni.getStorageSync('auth');
         const safetyCode = uni.getStorageSync('safetyCode');
         if (auth != '' && safetyCode != '' && auth == safetyCode) {

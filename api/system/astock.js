@@ -232,4 +232,11 @@ export default {
             method: 'post',
             data: params,
         }),
+    //涨平跌
+    getMarketOverview: params =>
+        http.request({
+            url: buildUrl('/api/market/getMarketOverview'),
+            method: 'get',
+            data: params,
+        }),
 };

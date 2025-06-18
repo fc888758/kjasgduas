@@ -52,12 +52,15 @@
                                         上涨<text class="up"> {{ upStocks }}({{ upPercent }}%)</text>
                                     </view>
                                     <view>
+                                        平<text class="middle"> {{ middleStocks }}({{ middlePercent }}%)</text>
+                                    </view>
+                                    <view>
                                         下跌<text class="down"> {{ downStocks }}({{ downPercent }}%)</text>
                                     </view>
                                 </view>
-                                <view class="distribution-bar" :style="{ '--junction-position': upPercent + '%' }">
+                                <view class="distribution-bar">
                                     <view class="up-bar" :style="{ width: upPercent + '%' }"> </view>
-                                    <view class="middler" :style="{ width: flatPercent + '%' }"></view>
+                                    <view class="middler" :style="{ width: middlePercent + '%' }"></view>
                                     <view class="down-bar" :style="{ width: downPercent + '%' }"></view>
                                 </view>
                             </view>
@@ -196,10 +199,9 @@ export default {
             currentIndexTab: 'market',
             navItems: ['行情', '自选', '新股', '配售', '要约收购'],
             currentTab: 0,
-            totalStocks: 5000, // 总数
-            upStocks: 3300, // 涨
-            flatStocks: 81, // 平
-            downStocks: 1619, // 跌
+            upStocks: 45,
+            middleStocks: 10,
+            downStocks: 45,
             // 市场指数数据
             marketIndexes: [],
             loading: false,
@@ -233,13 +235,16 @@ export default {
             return groups;
         },
         upPercent() {
-            return Math.round((this.upStocks / this.totalStocks) * 100);
+            const total = this.upStocks + this.middleStocks + this.downStocks;
+            return Math.round((this.upStocks / total) * 100);
         },
-        flatPercent() {
-            return Math.round((this.flatStocks / this.totalStocks) * 100);
+        middlePercent() {
+            const total = this.upStocks + this.middleStocks + this.downStocks;
+            return Math.round((this.middleStocks / total) * 100);
         },
         downPercent() {
-            return Math.round((this.downStocks / this.totalStocks) * 100);
+            const total = this.upStocks + this.middleStocks + this.downStocks;
+            return Math.round((this.downStocks / total) * 100);
         },
     },
     onShow() {
@@ -277,6 +282,7 @@ export default {
             try {
                 this.uninstall();
                 this.getMarketIndexs();
+                this.getMarketOverview();
                 this.refreshHotStocks();
                 this.loadRankingStocks(1, true);
             } catch (error) {
@@ -314,6 +320,16 @@ export default {
                 }, 3000);
             }
 
+        },
+        async getMarketOverview() {
+            const overview = await this.$api.getMarketOverview();
+            if (overview.fenbu) {
+                this.middleStocks = overview.fenbu['p'];
+                const up = overview.fenbu['+03'] + overview.fenbu['+35'] + overview.fenbu['+57'] + overview.fenbu['>7'] + overview.fenbu['zt'];
+                const down = overview.fenbu['-03'] + overview.fenbu['-35'] + overview.fenbu['-57'] + overview.fenbu['<7'] + overview.fenbu['dt'];
+                this.upStocks = up;
+                this.downStocks = down;
+            }
         },
         // 热门股票数据
         async refreshHotStocks() {
