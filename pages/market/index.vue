@@ -68,7 +68,7 @@
                     </view>
 
                     <!-- 市场概况 -->
-                    <view class="market-overview">
+                    <!-- <view class="market-overview">
                         <view class="overview-item">
                             <text class="item-label">涨跌停对比</text>
                             <text class="item-value">86:3</text>
@@ -77,7 +77,7 @@
                             <text class="item-label">昨涨停表现</text>
                             <text class="item-value up">3.39%</text>
                         </view>
-                    </view>
+                    </view> -->
 
                     <!-- 热门股票 -->
                     <view class="hot-stocks">
@@ -123,8 +123,8 @@
                             </view>
 
                             <view class="ranking-tabs">
-                                <text class="tab active">涨幅榜</text>
-                                <text class="tab">跌幅榜</text>
+                                <text :class="sort == 'desc' ? 'tab active ' : 'tab'" @click="onSort(1)">涨幅榜</text>
+                                <text :class="sort == 'asc' ? 'tab active ' : 'tab'" @click="onSort(2)">跌幅榜</text>
                             </view>
                         </view>
 
@@ -217,6 +217,8 @@ export default {
             hotAstockDataTimer: null,
             rankingStocksTimer: null,
             isShow: 0,
+            field: 3,
+            sort: '',
         };
     },
     computed: {
@@ -277,6 +279,7 @@ export default {
             }
         },
         async loadMarketData() {
+            this.sort = '';
             this.isShow = 1;
             this.loading = true;
             try {
@@ -290,6 +293,16 @@ export default {
             } finally {
                 this.loading = false;
             }
+        },
+        onSort(type) {
+            if ((type == 1 && this.sort == 'desc') || (type == 2 && this.sort == 'asc')) {
+                this.sort = '';
+            } else if (type == 1 && this.sort != 'desc') {
+                this.sort = 'desc';
+            } else if (type == 2 && this.sort != 'asc') {
+                this.sort = 'asc';
+            }
+            this.loadRankingStocks(this.currentPage, true);
         },
         // 下拉刷新
         onRefresh() {
@@ -344,7 +357,12 @@ export default {
         // 股票排行榜数据
         async loadRankingStocks(page = 1) {
             this.clearTimer(3);
-            const result = await this.$api.getMarketStocks({ page });
+            const params = { page: page }
+            if (this.sort) {
+                params.field = this.field
+                params.sort = this.sort
+            }
+            const result = await this.$api.getMarketStocks(params);
             this.rankingStocks = result.data;
             this.total = result.total;
             this.pageSize = result.per_page;
@@ -380,13 +398,8 @@ export default {
             const index = this.currentTab
             if (index == 1) {
                 setTimeout(() => { uni.$emit('endOptional') }, 0)
-            } else if (index == 2) {
-                // uni.$emit('startOptional');
-            } else if (index == 3) {
-                // uni.$emit('startOptional');
             } else if (index == 4) {
                 setTimeout(() => { uni.$emit('endAllocation') }, 0)
-                // uni.$emit('startOptional');
             } else {
                 this.clearTimer();
             }
@@ -740,7 +753,7 @@ export default {
                     color: #666;
 
                     &.active {
-                        color: #000;
+                        color: #deb36f;
                         font-weight: bold;
                     }
                 }
