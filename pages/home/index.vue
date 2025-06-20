@@ -130,7 +130,7 @@ export default {
                 { type: 5, text: 'VIP调研票', icon: '/static/icon/vip.png' },
                 { type: 6, text: '新股申购', icon: '/static/icon/new-stock.png' },
                 { type: 7, text: '银证转账', icon: '/static/icon/bank-transfer.png' },
-                { type: 8, text: '要约收购', icon: '/static/icon/contract.png' },
+                { type: 8, text: '融资融券', icon: '/static/icon/contract.png' },
                 { type: 9, text: '持仓记录', icon: '/static/icon/records.png' },
             ],
             quickTags: [
@@ -229,10 +229,39 @@ export default {
                     this.$tab.navigateTo('/pages/mine/recharge');
                     break;
                 case 8:
+                    uni.showModal({
+                        title: '账户无权限操作',
+                        content: '请联系专属客服经理咨询',
+                        confirmText: '确定',
+                        cancelText: '取消',
+                        success: res => {
+                            if (res.confirm) {
+                                this.$tab.navigateTo('/pages/mine/webView?type=1');
+                            }
+                        },
+                    });
+                    return false;
                     uni.setStorageSync('marketCurrent', 4);
                     this.$tab.navigateTo('/pages/market/index');
                     break;
                 case 9:
+                    if (!this.userInfo) {
+                        uni.showModal({
+                            title: '温馨提示',
+                            content: '您还未进行登录/注册',
+                            cancelText: '取消',
+                            confirmText: '去登录/注册',
+                            success: (res) => {
+                                if (res.confirm) {
+                                    this.$tab.navigateTo('/pages/mine/login');
+                                    return false;
+                                } else {
+                                    return false;
+                                }
+                            }
+                        });
+                        return false;
+                    }
                     this.$tab.navigateTo('/pages/trade/index');
                     break;
                 case 10:

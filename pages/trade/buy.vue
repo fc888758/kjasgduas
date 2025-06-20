@@ -696,7 +696,7 @@ export default {
                 if (result) {
                     // 密码正确，提交订单
                     if (this.type === 'bd' && this.passwordOrderParams) {
-                        // 提交要约收购订单
+                        // 提交融资融券订单
                         this.submitBlockTradeOrder(this.passwordOrderParams, this.password);
                     } else if (this.type === 'ftc' && this.passwordOrderParams) {
                         // 提交VIP调研订单
@@ -717,7 +717,7 @@ export default {
             }
         },
 
-        // 提交要约收购订单
+        // 提交融资融券订单
         submitBlockTradeOrder(params, password = null) {
             // 如果有密码，添加到参数中
             if (password) {

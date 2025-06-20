@@ -1,6 +1,6 @@
 <template>
     <view class="acquisition-container">
-        <!-- 要约收购列表页面 -->
+        <!-- 融资融券列表页面 -->
         <view class="acquisition-list">
             <!-- 表头 -->
             <view class="table-header">
@@ -83,7 +83,7 @@ export default {
             await this.fetchAcquisitionData();
             this.$modal.closeLoading();
         },
-        // 获取要约收购数据
+        // 获取融资融券数据
         async fetchAcquisitionData(page = 1) {
             this.clearTimer();
             const result = await this.$api.getBlockTradeStocks({ page });

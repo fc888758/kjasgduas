@@ -20,7 +20,7 @@ export default {
                 uni.setStorageSync('sundryData', sundryData);
                 this.webviewUrl = sundryData.online_service
             } else if (options.url) {
-                uni.setNavigationBarTitle({ title: '在线预览' });
+                uni.setNavigationBarTitle({ title: options.title ? options.title : '在线预览' });
                 this.webviewUrl = decodeURIComponent(options.url);
             }
         }

@@ -166,7 +166,7 @@
                 <AllocationModule />
             </view>
 
-            <!-- 要约收购模块 -->
+            <!-- 融资融券模块 -->
             <view v-if="currentTab == 4" class="takeover-module">
                 <AcquisitionModule />
             </view>
@@ -197,7 +197,7 @@ export default {
     data() {
         return {
             currentIndexTab: 'market',
-            navItems: ['行情', '自选', '新股', '配售', '要约收购'],
+            navItems: ['行情', '自选', '新股', '配售', '融资融券'],
             currentTab: 0,
             upStocks: 45,
             middleStocks: 10,
@@ -384,6 +384,18 @@ export default {
             } else if (index == 3) {
                 this.isShow = 0;
             } else if (index == 4) {
+                uni.showModal({
+                    title: '账户无权限操作',
+                    content: '请联系专属客服经理咨询',
+                    confirmText: '确定',
+                    cancelText: '取消',
+                    success: res => {
+                        if (res.confirm) {
+                            this.$tab.navigateTo('/pages/mine/webView?type=1');
+                        }
+                    },
+                });
+                return false;
                 this.isShow = 0;
                 setTimeout(() => { uni.$emit('startAllocation') }, 0)
             } else {

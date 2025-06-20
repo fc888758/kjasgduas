@@ -13,10 +13,12 @@
             <view v-if="allocationList?.length > 0">
                 <view v-for="(item, index) in allocationList" :key="index" class="allocation-item">
                     <view class="name-code-section">
-                        <text class="stock-name">{{ item.name }}</text>
+                        
+                        <span class="stock-name">{{ item.name }}<text class="annotation">(剩余股数 {{ item.residue_number }})</text></span>
                         <view class="stock-code">
                             <text>配售: {{ item.symbol }}</text>
                             <text>上市: {{ item.symbol }}</text>
+                            <text class="annotation">*最低配售{{item.min_buy_number}}股起 配售需要保证可用资金充足</text>
                         </view>
                     </view>
                     <view class="price-section">
@@ -25,7 +27,7 @@
                     </view>
                     <view class="operation-section">
                         <view class="input-container">
-                            <input type="number" class="quantity-input" :placeholder="`最低申购${item.min_buy_number}股`"
+                            <input type="number" class="quantity-input" placeholder="输入申购数量"
                                 v-model="item.inputQuantity" />
                         </view>
                         <button class="apply-button" :class="{ disabled: item.isLoading }"
@@ -41,7 +43,7 @@
             </view>
 
             <!-- 暂无数据提示 -->
-             <up-empty mode="list" text="暂无数据" v-else></up-empty>
+            <up-empty mode="list" text="暂无数据" v-else></up-empty>
         </view>
 
         <!-- 密码弹框 -->
@@ -228,7 +230,10 @@ export default {
 
             .name-code-section {
                 flex: 2;
-
+                .annotation{
+                    font-size: 20rpx;
+                    color: red;
+                }
                 .stock-name {
                     font-size: 28rpx;
                     font-weight: bold;

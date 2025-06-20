@@ -14,7 +14,7 @@
             <input type="digit" class="amount-input" placeholder="请输入转出金额" placeholder-class="input-placeholder"
                 v-model="formData.amount" />
         </view>
-
+        <view class="tip">*提现金额不能低于{{ withdrawal_min }}元 提现金额不能高于{{ withdrawal_max }}元</view>
         <!-- 全部提现按钮 -->
         <view class="withdraw-all" @click="withdrawAll">全部提现</view>
 
@@ -33,12 +33,33 @@
         <!-- 转出按钮 -->
         <view class="withdraw-button withdraw-button-active" @click="withdraw"> 转出 </view>
     </view>
+
+    <view class="prompt">*申请提现时间为工作日<br>{{ withdrawal_start_time_am }}-{{ withdrawal_end_time_am }}, {{
+        withdrawal_start_time_ar }}-{{ withdrawal_end_time_ar }}</view>
 </template>
 
 <script>
 export default {
     onShow() {
-        this.getUserInfo()
+        this.userInfo = uni.getStorageSync('userInfo');
+        if (!this.userInfo) {
+            this.$tab.redirectTo('/pages/home/index');
+            return false;
+        }
+
+        this.$modal.loading('数据加载中...');
+        this.getWalletBank();
+        this.$modal.closeLoading();
+
+        const sundryData = uni.getStorageSync('sundryData');
+        if (sundryData) {
+            this.withdrawal_min = sundryData.withdrawal_min;
+            this.withdrawal_max = sundryData.withdrawal_max;
+            this.withdrawal_start_time_ar = sundryData.withdrawal_start_time_ar;
+            this.withdrawal_end_time_ar = sundryData.withdrawal_end_time_ar;
+            this.withdrawal_start_time_am = sundryData.withdrawal_start_time_am;
+            this.withdrawal_end_time_am = sundryData.withdrawal_end_time_am;
+        }
     },
     data() {
         return {
@@ -47,23 +68,17 @@ export default {
                 amount: '',
                 security_password: '',
             },
-            selectedBank: '',
+            withdrawal_min: 100,
+            withdrawal_max: 100000,
+            withdrawal_start_time_ar: '',
+            withdrawal_end_time_ar: '',
+            withdrawal_start_time_am: '',
+            withdrawal_end_time_am: '',
         };
     },
     methods: {
-        // 获取用户
-        getUserInfo() {
-            this.userInfo = uni.getStorageSync('userInfo');
-            if (!this.userInfo) {
-                this.$tab.redirectTo('/pages/home/index');
-                return
-            }
-            this.$modal.loading('数据加载中...');
-            this.getWalletBank()
-            this.$modal.closeLoading();
-        },
-        getWalletBank() {
-            this.$api.getWalletBank().then(res => {
+        async getWalletBank() {
+            await this.$api.getWalletBank().then(res => {
                 if (res) {
                     this.selectedBank = '(' + res.bank_name + ')' + res.bank_account
                 }
@@ -116,6 +131,20 @@ export default {
 </script>
 
 <style lang="scss">
+.tip {
+    font-size: 14px;
+    text-align: center;
+    color: red;
+    margin-top: 5px;
+}
+
+.prompt {
+    text-align: center;
+    color: red;
+    background-color: #fff;
+    margin-top: 10px;
+}
+
 .withdraw-container {
     background-color: #f8f8f8;
     padding: 0 20rpx;

@@ -39,6 +39,9 @@ export default {
                 case "2":
                     title = '隐私政策'
                     break
+                case "3":
+                    title = '关于我们'
+                    break
                 default:
                     title = '用户协议'
             }

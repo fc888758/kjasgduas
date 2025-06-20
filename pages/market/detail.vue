@@ -90,9 +90,9 @@
         </view>
 
         <!-- K线图区域 -->
-        <!-- <view class="chart-container">
+        <view class="chart-container">
             <Hqchart :stock_id="stock_id"></Hqchart>
-        </view> -->
+        </view>
 
         <!-- 五档盘口 -->
         <view class="order-book">
