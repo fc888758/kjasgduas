@@ -16,121 +16,122 @@
 </template>
 
 <script>
-import ExchangeTag from '@/components/exchangeTag.vue';
+    import ExchangeTag from '@/components/exchangeTag.vue';
 
-export default {
-    name: 'StockInfoItem',
-    components: {
-        ExchangeTag,
-    },
-    props: {
-        stockName: {
-            type: String,
-            required: true,
+    export default {
+        name: 'StockInfoItem',
+        components: {
+            ExchangeTag,
         },
-        exchange: {
-            type: String,
-            required: true,
+        props: {
+            stockName: {
+                type: String,
+                required: true,
+            },
+            exchange: {
+                type: String,
+                required: true,
+            },
+            stockCode: {
+                type: String,
+                required: true,
+            },
+            price: {
+                type: [Number, String],
+                required: true,
+            },
+            increase: {
+                type: [Number, String],
+                required: true,
+            },
+            changeRate: {
+                type: [Number, String],
+                required: true,
+                default: 0,
+            },
+            stock_id: {
+                type: [Number, String],
+                required: true,
+            },
         },
-        stockCode: {
-            type: String,
-            required: true,
+        computed: {
+            isUp() {
+                return Number(this.changeRate) > 0;
+            },
+            isDown() {
+                return Number(this.changeRate) < 0;
+            },
         },
-        price: {
-            type: [Number, String],
-            required: true,
+        methods: {
+            navigateToDetail() {
+                this.$tab.navigateTo('/pages/market/detail?stock_id=' + this.stock_id);
+            },
         },
-        increase: {
-            type: [Number, String],
-            required: true,
-        },
-        changeRate: {
-            type: [Number, String],
-            required: true,
-            default: 0,
-        },
-        stock_id: {
-            type: [Number, String],
-            required: true,
-        },
-    },
-    computed: {
-        isUp() {
-            return Number(this.changeRate) > 0;
-        },
-        isDown() {
-            return Number(this.changeRate) < 0;
-        },
-    },
-    methods: {
-        navigateToDetail() {
-            this.$tab.navigateTo('/pages/market/detail?stock_id=' + this.stock_id);
-        },
-    },
-};
+    };
 </script>
 
 <style lang="scss" scoped>
-.ranking-item {
-    display: flex;
-    align-items: center;
-    padding: 20rpx;
-    border-bottom: 1px solid #f0f0f0;
-    position: relative;
-    transition: background-color 0.2s;
+    .ranking-item {
+        display: flex;
+        align-items: center;
+        padding: 20rpx;
+        border-bottom: 1px solid #f0f0f0;
+        position: relative;
+        transition: background-color 0.2s;
 
-    &:active {
-        background-color: #f9f9f9;
+        &:active {
+            background-color: #f9f9f9;
+        }
+
+        &:last-child {
+            border-bottom: none;
+        }
     }
 
-    &:last-child {
-        border-bottom: none;
+    .stock-info {
+        flex: 1.5;
+        //padding-left: 10px;
+
+        .stock-name {
+            font-size: 28rpx;
+            color: #333;
+        }
+
+        .stock-code {
+            font-size: 24rpx;
+            color: #999;
+            margin-left: 10rpx;
+        }
     }
-}
 
-.stock-info {
-    flex: 1.5;
-    //padding-left: 10px;
-
-    .stock-name {
+    .stock-price {
+        flex: 1;
         font-size: 28rpx;
-        color: #333;
+        font-weight: bold;
+        text-align: right;
+
+        &.up {
+            color: #f5222d;
+        }
+
+        &.down {
+            color: #52c41a;
+        }
     }
 
-    .stock-code {
-        font-size: 24rpx;
-        color: #999;
-        margin-left: 10rpx;
+    .stock-change {
+        flex: 1;
+        font-size: 28rpx;
+        text-align: right;
+        font-weight: bold;
+        //padding-right: 10px;
+
+        &.up {
+            color: #f5222d;
+        }
+
+        &.down {
+            color: #52c41a;
+        }
     }
-}
-
-.stock-price {
-    flex: 1;
-    font-size: 28rpx;
-    font-weight: bold;
-    text-align: right;
-
-    &.up {
-        color: #f5222d;
-    }
-
-    &.down {
-        color: #52c41a;
-    }
-}
-
-.stock-change {
-    flex: 1;
-    font-size: 24rpx;
-    text-align: right;
-    //padding-right: 10px;
-
-    &.up {
-        color: #f5222d;
-    }
-
-    &.down {
-        color: #52c41a;
-    }
-}
 </style>

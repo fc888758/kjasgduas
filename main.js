@@ -6,6 +6,7 @@ import Vue from 'vue';
 import './uni.promisify.adaptor';
 Vue.config.productionTip = false;
 App.mpType = 'app';
+console.log = function () {};
 const app = new Vue({
     ...App,
 });

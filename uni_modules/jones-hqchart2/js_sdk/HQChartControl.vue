@@ -1,37 +1,39 @@
 <template>
-    <!--  #ifdef  H5 -->
-    <div
-        class="kline"
-        v-bind:id="KLineID"
-        v-bind:style="{ width: ChartWidth + 'px', height: ChartHeight + 'px' }"
-        ref="kline"
-    ></div>
-    <!--  #endif -->
+    <div class="hqchart-container">
+        <!--  #ifdef  H5 -->
+        <div
+            class="kline"
+            v-bind:id="KLineID"
+            v-bind:style="{ width: ChartWidth + 'px', height: ChartHeight + 'px' }"
+            ref="kline"
+        ></div>
+        <!--  #endif -->
 
-    <!--  #ifdef  MP-WEIXIN -->
-    <canvas
-        class="kline"
-        v-bind:id="KLineID"
-        type="2d"
-        v-bind:style="{ width: ChartWidth + 'px', height: ChartHeight + 'px' }"
-        @touchstart="KLineTouchStart"
-        @touchmove="KLineTouchMove"
-        @touchend="KLineTouchEnd"
-    />
-    <!--  #endif -->
+        <!--  #ifdef  MP-WEIXIN -->
+        <canvas
+            class="kline"
+            v-bind:id="KLineID"
+            type="2d"
+            v-bind:style="{ width: ChartWidth + 'px', height: ChartHeight + 'px' }"
+            @touchstart="KLineTouchStart"
+            @touchmove="KLineTouchMove"
+            @touchend="KLineTouchEnd"
+        />
+        <!--  #endif -->
 
-    <!--  #ifndef  H5 || MP-WEIXIN -->
-    <canvas
-        v-bind:id="KLineID"
-        v-bind:canvas-id="KLineID"
-        class="kline2"
-        v-bind:style="{ width: ChartWidth + 'px', height: ChartHeight + 'px' }"
-        @touchstart="KLineTouchStart"
-        @touchmove="KLineTouchMove"
-        @touchend="KLineTouchEnd"
-    ></canvas>
+        <!--  #ifndef  H5 || MP-WEIXIN -->
+        <canvas
+            v-bind:id="KLineID"
+            v-bind:canvas-id="KLineID"
+            class="kline2"
+            v-bind:style="{ width: ChartWidth + 'px', height: ChartHeight + 'px' }"
+            @touchstart="KLineTouchStart"
+            @touchmove="KLineTouchMove"
+            @touchend="KLineTouchEnd"
+        ></canvas>
 
-    <!--  #endif -->
+        <!--  #endif -->
+    </div>
 </template>
 
 <script>
@@ -464,18 +466,7 @@
 
             CreateKLineChart() {
                 this.ChartType = 'KLine';
-
-                // #ifdef H5
                 return this.CreateKLineChart_h5();
-                // #endif
-
-                //  #ifdef MP-WEIXIN
-                return this.CreateKLineChart_WeChat();
-                // #endif
-
-                // #ifndef H5 || MP-WEIXIN
-                return this.CreateKLineChart_app();
-                // #endif
             },
 
             CreateMinuteChart_h5() {
@@ -632,36 +623,6 @@
                 if (this.IsKLineChart() && jsChart) jsChart.ChangeKLineDrawType(id);
             },
 
-            ///////////////////////////////////////////////
-            //手势事件 app/小程序才有
-            //KLine事件
-            KLineTouchStart(event) {
-                var jsChart = this.GetJSChart();
-                if (jsChart) {
-                    var backup = this.ConvertTouchEventData(event);
-                    jsChart.OnTouchStart(event);
-                    this.RestoreTouchEventData(backup, event);
-                }
-            },
-
-            KLineTouchMove(event) {
-                var jsChart = this.GetJSChart();
-                if (jsChart) {
-                    var backup = this.ConvertTouchEventData(event);
-                    jsChart.OnTouchMove(event);
-                    this.RestoreTouchEventData(backup, event);
-                }
-            },
-
-            KLineTouchEnd(event) {
-                var jsChart = this.GetJSChart();
-                if (jsChart) {
-                    var backup = this.ConvertTouchEventData(event);
-                    jsChart.OnTouchEnd(event);
-                    this.RestoreTouchEventData(backup, event);
-                }
-            },
-
             ConvertTouchEventData(event) {
                 if (Array.isArray(event.touches)) return null;
 
@@ -702,11 +663,8 @@
 
                 event.touches = backup.Touches; //还原原来的touches结构
                 event.changedTouches = backup.ChangedTouches;
-
-                //console.log('RestoreTouchEventData' ,event )
             },
 
-            /////////////////////////////////////////////////////////////////////////////////////////
             NetworkFilter(data, callback) {
                 console.log(`[HQChartTemplate:NetworkFilter] Name=${data.Name} Explain=${data.Explain}`);
 
@@ -717,7 +675,7 @@
                     let period = data.Self.Period; // 获取周期
 
                     // 调用项目中已有的HQData模块处理请求
-                    import('@/pages/market/HQData.js')
+                    import('@/pages/market/components/hqchart/HQData.js')
                         .then(module => {
                             const HQData = module.default;
                             HQData.RequestHistoryData(data, callback, symbol);
@@ -736,7 +694,7 @@
 
                 // 处理其他类型的请求
                 if (data.Name.includes('KLineChartContainer') || data.Name.includes('MinuteChartContainer')) {
-                    import('@/pages/market/HQData.js')
+                    import('@/pages/market/components/hqchart/HQData.js')
                         .then(module => {
                             const HQData = module.default;
                             HQData.NetworkFilter(data, callback, data.Request.Data.symbol);
