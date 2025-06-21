@@ -5,7 +5,7 @@ export default {
     onLaunch: async function () {
         initNavigationInterceptor(); // 初始化页面拦截器
         // console.log('App Launch1');
-        //console.log = function () {};
+        console.log = function () {};
         var ret = await initializeApp();
         if (ret) {
             const auth = uni.getStorageSync('auth');
