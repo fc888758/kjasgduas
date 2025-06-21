@@ -140,12 +140,11 @@
                                 <text class="stock-code">{{ item.symbol }}</text>
                             </view>
                             <view class="stock-exchange" v-if="item.issue">{{ item.issue }}</view>
-
                             <view class="detail-row" v-if="item.order_status">
                                 <text
                                     class="status"
                                     :class="{
-                                        'status-pending': item.order_status == '0',
+                                        'status-holding': item.order_status == '0',
                                         'status-paid': item.order_status == '1',
                                         'status-pending': item.order_status == '2',
                                         'status-notwin': item.order_status == '3',
@@ -1340,35 +1339,59 @@
 
         .status {
             &.status-pending {
-                color: #ff9800;
+                padding: 8rpx;
+                background: #ff9800 !important;
+                color: #fff !important;
+                border-radius: 8rpx;
+                font-size: 26rpx;
             }
 
             &.status-confirmed {
-                color: #2196f3;
+                padding: 8rpx;
+                background: #2196f3 !important;
+                color: #fff !important;
+                border-radius: 8rpx;
+                font-size: 26rpx;
             }
 
             &.status-notwin {
-                color: #9e9e9e;
+                padding: 8rpx;
+                background: #9e9e9e !important;
+                color: #fff !important;
+                border-radius: 8rpx;
+                font-size: 26rpx;
             }
 
             &.status-paid {
-                color: #4caf50;
-                /* 绿色 - 中签已认缴 */
+                padding: 8rpx;
+                background: #4caf50 !important;
+                color: #fff !important;
+                border-radius: 8rpx;
+                font-size: 26rpx;
             }
 
             &.status-partial {
-                color: #673ab7;
-                /* 紫色 - 部分回购 */
+                padding: 8rpx;
+                background: #673ab7 !important;
+                color: #fff !important;
+                border-radius: 8rpx;
+                font-size: 26rpx;
             }
 
             &.status-all {
-                color: #f44336;
-                /* 红色 - 全部回购 */
+                padding: 8rpx;
+                background: #f44336 !important;
+                color: #fff !important;
+                border-radius: 8rpx;
+                font-size: 26rpx;
             }
 
             &.status-holding {
-                color: #009688;
-                /* 青色 - 当前持仓 */
+                padding: 8rpx;
+                background: #009688 !important;
+                color: #fff !important;
+                border-radius: 8rpx;
+                font-size: 26rpx;
             }
         }
 
