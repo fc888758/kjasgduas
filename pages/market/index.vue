@@ -278,7 +278,7 @@
         },
         computed: {
             industryGroups() {
-                // 确保 marketIndexes 属性存在
+                //  marketIndexes 属性存在
                 if (!this.marketIndexes) {
                     return [];
                 }

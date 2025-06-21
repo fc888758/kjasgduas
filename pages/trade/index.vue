@@ -140,7 +140,15 @@
                                 <text class="stock-code">{{ item.symbol }}</text>
                             </view>
                             <view class="stock-exchange" v-if="item.issue">{{ item.issue }}</view>
-                            <view class="detail-row" v-if="item.order_status">
+                            <view
+                                class="detail-row"
+                                v-if="
+                                    item.order_status &&
+                                    currentNav[0] == 0 &&
+                                    currentNav[1] == 2 &&
+                                    item.order_status != 1
+                                "
+                            >
                                 <text
                                     class="status"
                                     :class="{
@@ -921,7 +929,14 @@
                 this.$modal.confirm('确定要卖出吗？', '卖出确认').then(() => {
                     // 用户点击确定后执行认缴操作
                     this.$modal.loading('正在卖出');
-                    if (this.currentNav[0] == 2) {
+                    if (this.currentNav[0] == 0 && this.currentNav[1] == 1) {
+                        this.$api.coverPlacementOrder({ order_id: id }).then(() => {
+                            this.$modal.closeLoading();
+                            this.$modal.msgSuccess('卖出成功');
+                            this.getUserInfo();
+                            this.loadPurchaseRecords();
+                        });
+                    } else if (this.currentNav[0] == 2) {
                         this.$api.coverIpoOrder({ order_id: id }).then(() => {
                             this.$modal.closeLoading();
                             this.$modal.msgSuccess('卖出成功');

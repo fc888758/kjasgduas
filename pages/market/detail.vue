@@ -225,7 +225,7 @@
             };
         },
         onReady() {
-            // // 使用 nextTick 确保 DOM 已渲染
+            // // 使用 nextTick  DOM 已渲染
             this.$nextTick(async () => {
                 await this.initChart();
             });

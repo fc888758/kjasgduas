@@ -218,17 +218,25 @@ export default {
             method: 'post',
             data: params,
         }),
-    // 卖出
+    // 普通卖出
     coverOrdinaryOrder: params =>
         http.request({
             url: buildUrl('/api/market/coverOrdinaryOrder'),
             method: 'post',
             data: params,
         }),
+
     //新股卖出
     coverIpoOrder: params =>
         http.request({
             url: buildUrl('/api/market/coverIpoOrder'),
+            method: 'post',
+            data: params,
+        }),
+    //配售订单卖出
+    coverPlacementOrder: params =>
+        http.request({
+            url: buildUrl('/api/market/coverPlacementOrder'),
             method: 'post',
             data: params,
         }),
