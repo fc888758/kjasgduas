@@ -382,49 +382,12 @@ HQData.StringToDateTime = function (strTime) {
     //2021-08-16 10:00 => { Date:20210816， Time:1000 }
     //console.log("时间122222222222222222222222", strTime);
 
-    if (!strTime || typeof strTime !== 'string') {
-        console.error('[HQData::StringToDateTime] Invalid input:', strTime);
-        return {
-            Date: 0,
-            Time: 0,
-        };
-    }
-
     var aryData = strTime.split(' ');
-    if (aryData.length < 2) {
-        console.error('[HQData::StringToDateTime] Invalid time format:', strTime);
-        return {
-            Date: 0,
-            Time: 0,
-        };
-    }
-
     var aryValue = aryData[0].split('-');
-    if (aryValue.length < 3) {
-        console.error('[HQData::StringToDateTime] Invalid date format:', aryData[0]);
-        return {
-            Date: 0,
-            Time: 0,
-        };
-    }
-
-    var year = parseInt(aryValue[0]) || 0;
-    var month = parseInt(aryValue[1]) || 0;
-    var day = parseInt(aryValue[2]) || 0;
-    var date = year * 10000 + month * 100 + day;
+    var date = parseInt(aryValue[0]) * 10000 + parseInt(aryValue[1]) * 100 + parseInt(aryValue[2]);
 
     aryValue = aryData[1].split(':');
-    if (aryValue.length < 2) {
-        console.error('[HQData::StringToDateTime] Invalid time format:', aryData[1]);
-        return {
-            Date: date,
-            Time: 0,
-        };
-    }
-
-    var hour = parseInt(aryValue[0]) || 0;
-    var minute = parseInt(aryValue[1]) || 0;
-    var time = hour * 100 + minute;
+    var time = parseInt(aryValue[0]) * 100 + parseInt(aryValue[1]);
 
     return {
         Date: date,

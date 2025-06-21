@@ -667,7 +667,6 @@ export default {
                     exchange: item?.exchange,
                     symbol: item?.symbol,
                     paid_amount: item?.award_number,
-                    buy_current_price: item?.sell_current_price,
                     payable_amount: item?.payable_amount,
                     sell_current_price: item?.sell_current_price,
                     subscribe_number: item?.subscribe_number,

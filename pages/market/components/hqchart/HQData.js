@@ -119,7 +119,7 @@ HQData.StringToDateTime = function (strTime) {
             Time: 0,
         };
     }
-
+    
     var aryData = strTime.split(' ');
     if (aryData.length < 2) {
         console.error('[HQData::StringToDateTime] Invalid time format:', strTime);
@@ -128,9 +128,8 @@ HQData.StringToDateTime = function (strTime) {
             Time: 0,
         };
     }
-
+    
     var aryValue = aryData[0].split('-');
-    var date = parseInt(aryValue[0]) * 10000 + parseInt(aryValue[1]) * 100 + parseInt(aryValue[2]);
     if (aryValue.length < 3) {
         console.error('[HQData::StringToDateTime] Invalid date format:', aryData[0]);
         return {
@@ -138,14 +137,13 @@ HQData.StringToDateTime = function (strTime) {
             Time: 0,
         };
     }
-
+    
     var year = parseInt(aryValue[0]) || 0;
     var month = parseInt(aryValue[1]) || 0;
     var day = parseInt(aryValue[2]) || 0;
     var date = year * 10000 + month * 100 + day;
 
     aryValue = aryData[1].split(':');
-    var time = parseInt(aryValue[0]) * 100 + parseInt(aryValue[1]);
     if (aryValue.length < 2) {
         console.error('[HQData::StringToDateTime] Invalid time format:', aryData[1]);
         return {
@@ -153,7 +151,7 @@ HQData.StringToDateTime = function (strTime) {
             Time: 0,
         };
     }
-
+    
     var hour = parseInt(aryValue[0]) || 0;
     var minute = parseInt(aryValue[1]) || 0;
     var time = hour * 100 + minute;
@@ -181,9 +179,9 @@ HQData.RequestMinuteData = function (data, callback) {
     var symbol = data.Request.Data.symbol[0]; //请求的股票代码
     var symbolUpper = symbol.toUpperCase();
     console.log(`[HQData::RequestMinuteData] Symbol=${symbol}`);
-
+    
     var obj = HQData.GetMinuteApiUrl(symbol, 1);
-
+    
     wx.request({
         url: obj.Url,
         type: 'GET',
@@ -195,7 +193,7 @@ HQData.RequestMinuteData = function (data, callback) {
         },
         fail: function (error) {
             console.error('[HQData::RequestMinuteData] Request failed:', error);
-        },
+        }
     });
 };
 
@@ -265,7 +263,12 @@ HQData.RequestMinuteDaysData = function (data, callback) {
         type: 'GET',
         success: function (recvData) {
             console.log('222222222222222222222222222222222222222');
-            if (MARKET_SUFFIX_NAME.IsSHFE(symbolUpper) || MARKET_SUFFIX_NAME.IsDCE(symbolUpper) || MARKET_SUFFIX_NAME.IsCZCE(symbolUpper) || MARKET_SUFFIX_NAME.IsCFFEX(symbolUpper))
+            if (
+                MARKET_SUFFIX_NAME.IsSHFE(symbolUpper) ||
+                MARKET_SUFFIX_NAME.IsDCE(symbolUpper) ||
+                MARKET_SUFFIX_NAME.IsCZCE(symbolUpper) ||
+                MARKET_SUFFIX_NAME.IsCFFEX(symbolUpper)
+            )
                 HQData.RecvMinuteDaysDataV2(recvData.data, callback, {
                     Data: data,
                     Obj: obj,
@@ -332,7 +335,17 @@ HQData.RecvMinuteDaysData = function (recvData, callback, option) {
 
         if (isStockA) stockItem.vol *= 100;
 
-        itemDay.minute.push([stockItem.time, stockItem.open, stockItem.high, stockItem.low, stockItem.price, stockItem.vol, stockItem.amount, stockItem.avprice, stockItem.date]);
+        itemDay.minute.push([
+            stockItem.time,
+            stockItem.open,
+            stockItem.high,
+            stockItem.low,
+            stockItem.price,
+            stockItem.vol,
+            stockItem.amount,
+            stockItem.avprice,
+            stockItem.date,
+        ]);
     }
 
     if (itemDay && itemDay.minute.length > 0) aryDayData.push(itemDay);
@@ -392,7 +405,17 @@ HQData.RecvMinuteDaysDataV2 = function (recvData, callback, option) {
         };
 
         itemDay.date = date;
-        itemDay.minute.push([stockItem.time, stockItem.open, stockItem.high, stockItem.low, stockItem.price, stockItem.vol, stockItem.amount, stockItem.avprice, stockItem.date]);
+        itemDay.minute.push([
+            stockItem.time,
+            stockItem.open,
+            stockItem.high,
+            stockItem.low,
+            stockItem.price,
+            stockItem.vol,
+            stockItem.amount,
+            stockItem.avprice,
+            stockItem.date,
+        ]);
 
         if (time == endTime) {
             if (itemDay && itemDay.minute.length > 0) aryDayData.push(itemDay);
@@ -505,8 +528,7 @@ HQData.GetInternalSymbol = function (
 
 HQData.GetMinuteApiUrl = function (symbol, dayCount) {
     var internalSymbol = HQData.GetInternalSymbol(symbol);
-
-    var url = `https://push2his.eastmoney.com/api/qt/stock/trends2/get?fields1=f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13&fields2=f51,f52,f53,f54,f55,f56,f57,f58&secid=${internalSymbol.Market}.${internalSymbol.Symbol}&ndays=${dayCount}&iscr=0&iscca=0`;
+    var url = 'https://server.88xx99.xyz' + `/api/market/stockMinute?stock_id=${internalSymbol.Symbol}&dayCount=${dayCount}`;
 
     return {
         Url: url,
