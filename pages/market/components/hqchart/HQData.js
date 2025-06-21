@@ -1,7 +1,7 @@
 import HQChart from '@/uni_modules/jones-hqchart2/js_sdk/umychart.uniapp.h5.js';
-var MARKET_SUFFIX_NAME = HQChart.MARKET_SUFFIX_NAME;
-var JSChart = HQChart.JSChart;
-
+const JSChart = HQChart.JSChart;
+const MARKET_SUFFIX_NAME = HQChart.MARKET_SUFFIX_NAME;
+import { getBaseURL } from '../../../../common/http/config.js';
 import astock from '@/api/system/astock';
 
 function HQData() {}
@@ -16,42 +16,7 @@ HQData.SetMinuteChartCoordinate = function () {
         return HQData.IsEnableRight(period, symbol);
     };
 
-    //美股分时图坐标
-    JSChart.GetMinuteTimeStringData().CreateUSAData = () => {
-        return HQData.CreateUSAData(JSChart.GetMinuteTimeStringData());
-    }; //替换交易时间段
-    JSChart.GetMinuteCoordinateData().GetUSAData = (upperSymbol, width) => {
-        return HQData.GetUSAData(upperSymbol, width);
-    }; //替换X轴刻度信息
-
-    //A股分时图坐标
-    JSChart.GetMinuteTimeStringData().CreateSHSZData = () => {
-        return HQData.CreateSHSZData(JSChart.GetMinuteTimeStringData());
-    }; //替换交易时间段
-    JSChart.GetMinuteCoordinateData().GetSHSZData = (upperSymbol, width) => {
-        return HQData.GetSHSZData(upperSymbol, width);
-    }; //替换X轴刻度信息
-
-    //北交所分时图坐标
-    JSChart.GetMinuteTimeStringData().CreateBJData = () => {
-        return HQData.CreateSHSZData(JSChart.GetMinuteTimeStringData());
-    }; //替换交易时间段
-    JSChart.GetMinuteCoordinateData().GetBJData = (upperSymbol, width) => {
-        return HQData.GetSHSZData(upperSymbol, width);
-    }; //替换X轴刻度信息
-
-    //港股分时图坐标
-    JSChart.GetMinuteTimeStringData().CreateHKData = () => {
-        return HQData.CreateHKData(JSChart.GetMinuteTimeStringData());
-    }; //替换交易时间段
-    JSChart.GetMinuteCoordinateData().GetHKData = (upperSymbol, width) => {
-        return HQData.GetHKData(upperSymbol, width);
-    }; //替换X轴刻度信息
-
-    //外汇分时图坐标
-    JSChart.GetMinuteTimeStringData().CreateForeignExchangeData = () => {
-        return HQData.CreateForeignExchangeData(JSChart.GetMinuteTimeStringData());
-    }; //替换交易时间段
+    //替换交易时间段
     JSChart.GetMinuteCoordinateData().GetForeignExchangeData = (upperSymbol, width) => {
         return HQData.GetForeignExchangeData(upperSymbol, width);
     }; //替换X轴刻度信息
@@ -67,94 +32,49 @@ HQData.SetMinuteChartCoordinate = function () {
         return HQData.GetETDecimal(symbol);
     }; // 不同品种，使用不同小数位数
     MARKET_SUFFIX_NAME.IsETShowAvPrice = symbol => {
-        return true;
+        return false;
     }; //提示信息是否显示均线数值
     MARKET_SUFFIX_NAME.GetETMarketStatus = symbol => {
         return 2;
     }; //获取市场状态 0=闭市 1=盘前 2=盘中 3=盘后
 };
 
-HQData.NetworkFilter = function (data, callback, stockKline) {
-    console.log(data, '=====================');
-    console.log(data.Name, '============data.Name=========');
-
-    console.log(`[HQData::NetworkFilter]========================================== ${HQData.Explain}`, data);
-
+HQData.NetworkFilter = function (data, callback, stock) {
     switch (data.Name) {
         case 'MinuteChartContainer::RequestMinuteData': //分时图数据对接
-            HQData.RequestMinuteData(data, callback, stockKline);
+            HQData.RequestMinuteData(data, callback, stock);
             break;
         case 'MinuteChartContainer::RequestHistoryMinuteData':
-            HQData.RequestMinuteDaysData(data, callback, stockKline);
+            HQData.RequestMinuteDaysData(data, callback, stock);
             break;
 
         case 'KLineChartContainer::RequestHistoryData': //日线全量数据下载
-            HQData.RequestHistoryData(data, callback, stockKline);
+            HQData.RequestHistoryData(data, callback, stock);
             break;
         case 'KLineChartContainer::RequestRealtimeData': //日线实时数据更新
-            HQData.RequestRealtimeData(data, callback, stockKline);
-            break;
-        case 'KLineChartContainer::RequestFlowCapitalData': //流通股本
-            HQData.RequestFlowCapitalData(data, callback, stockKline);
+            HQData.RequestRealtimeData(data, callback, stock);
             break;
 
         case 'KLineChartContainer::ReqeustHistoryMinuteData': //分钟全量数据下载
-            HQData.RequestHistoryMinuteData(data, callback, stockKline);
+            HQData.RequestHistoryMinuteData(data, callback, stock);
             break;
         case 'KLineChartContainer::RequestMinuteRealtimeData': //分钟增量数据更新
-            HQData.RequestMinuteRealtimeData(data, callback, stockKline);
+            HQData.RequestMinuteRealtimeData(data, callback, stock);
             break;
 
         case 'JSSymbolData::GetSymbolData': //无图形指标计算 全量K线数据
-            HQData.RequestSymbolData(data, callback, stockKline);
+            HQData.RequestSymbolData(data, callback, stock);
             break;
     }
 };
 
 HQData.StringToDateTime = function (strTime) {
-    if (!strTime || typeof strTime !== 'string') {
-        console.error('[HQData::StringToDateTime] Invalid input:', strTime);
-        return {
-            Date: 0,
-            Time: 0,
-        };
-    }
-    
     var aryData = strTime.split(' ');
-    if (aryData.length < 2) {
-        console.error('[HQData::StringToDateTime] Invalid time format:', strTime);
-        return {
-            Date: 0,
-            Time: 0,
-        };
-    }
-    
     var aryValue = aryData[0].split('-');
-    if (aryValue.length < 3) {
-        console.error('[HQData::StringToDateTime] Invalid date format:', aryData[0]);
-        return {
-            Date: 0,
-            Time: 0,
-        };
-    }
-    
-    var year = parseInt(aryValue[0]) || 0;
-    var month = parseInt(aryValue[1]) || 0;
-    var day = parseInt(aryValue[2]) || 0;
-    var date = year * 10000 + month * 100 + day;
+    var date = parseInt(aryValue[0]) * 10000 + parseInt(aryValue[1]) * 100 + parseInt(aryValue[2]);
 
     aryValue = aryData[1].split(':');
-    if (aryValue.length < 2) {
-        console.error('[HQData::StringToDateTime] Invalid time format:', aryData[1]);
-        return {
-            Date: date,
-            Time: 0,
-        };
-    }
-    
-    var hour = parseInt(aryValue[0]) || 0;
-    var minute = parseInt(aryValue[1]) || 0;
-    var time = hour * 100 + minute;
+    var time = parseInt(aryValue[0]) * 100 + parseInt(aryValue[1]);
 
     return {
         Date: date,
@@ -176,12 +96,9 @@ HQData.InvokeCallback = function (hqChartData, callback) {
 
 HQData.RequestMinuteData = function (data, callback) {
     data.PreventDefault = true;
-    var symbol = data.Request.Data.symbol[0]; //请求的股票代码
-    var symbolUpper = symbol.toUpperCase();
-    console.log(`[HQData::RequestMinuteData] Symbol=${symbol}`);
-    
+    var symbol = data.Request.Data.symbol[0];
+    var dayCount = data.Request.Data.daycount;
     var obj = HQData.GetMinuteApiUrl(symbol, 1);
-    
     wx.request({
         url: obj.Url,
         type: 'GET',
@@ -191,14 +108,11 @@ HQData.RequestMinuteData = function (data, callback) {
                 Obj: obj,
             });
         },
-        fail: function (error) {
-            console.error('[HQData::RequestMinuteData] Request failed:', error);
-        }
     });
 };
 
 HQData.RecvMinuteData = function (recvData, callback, option) {
-    var data = recvData.data;
+    var data = recvData;
 
     var stock = {
         symbol: option.Obj.Symbol,
@@ -211,8 +125,8 @@ HQData.RecvMinuteData = function (recvData, callback, option) {
     var symbolUpper = symbol.toUpperCase();
     var isStockA = MARKET_SUFFIX_NAME.IsSHSZ(symbolUpper);
     var isChinaFutrues = MARKET_SUFFIX_NAME.IsChinaFutures(symbolUpper);
-    var isLME = MARKET_SUFFIX_NAME.IsLME(symbolUpper); //伦敦金属交易所
-    if (isChinaFutrues) stock.yclearing = data.preSettlement; //期货昨结算价
+    var isLME = MARKET_SUFFIX_NAME.IsLME(symbolUpper);
+    if (isChinaFutrues) stock.yclearing = data.preSettlement;
 
     for (var i = 0; i < data.trends.length; ++i) {
         var strItem = data.trends[i];
@@ -245,36 +159,27 @@ HQData.RecvMinuteData = function (recvData, callback, option) {
     };
 
     if (option.Data.Self.IsDestroy == false) {
-        //console.log("[HQData.RecvMinuteDaysData] hqchartData ", hqchartData);
         HQData.InvokeCallback(hqchartData, callback);
     }
 };
 
 HQData.RequestMinuteDaysData = function (data, callback) {
     data.PreventDefault = true;
-    var symbol = data.Request.Data.symbol; //请求的股票代码
+    var symbol = data.Request.Data.symbol;
     var dayCount = data.Request.Data.daycount;
     var symbolUpper = symbol.toUpperCase();
-    console.log(`[HQData::RequestMinuteDaysData] Symbol=${symbol}`);
     var obj = HQData.GetMinuteApiUrl(symbol, dayCount);
-    console.log('222222222222222222222222222222222222222');
     wx.request({
         url: obj.Url,
         type: 'GET',
         success: function (recvData) {
-            console.log('222222222222222222222222222222222222222');
-            if (
-                MARKET_SUFFIX_NAME.IsSHFE(symbolUpper) ||
-                MARKET_SUFFIX_NAME.IsDCE(symbolUpper) ||
-                MARKET_SUFFIX_NAME.IsCZCE(symbolUpper) ||
-                MARKET_SUFFIX_NAME.IsCFFEX(symbolUpper)
-            )
-                HQData.RecvMinuteDaysDataV2(recvData.data, callback, {
+            if (MARKET_SUFFIX_NAME.IsSHFE(symbolUpper) || MARKET_SUFFIX_NAME.IsDCE(symbolUpper) || MARKET_SUFFIX_NAME.IsCZCE(symbolUpper) || MARKET_SUFFIX_NAME.IsCFFEX(symbolUpper))
+                HQData.RecvMinuteDaysDataV2(recvData, callback, {
                     Data: data,
                     Obj: obj,
                 });
             else
-                HQData.RecvMinuteDaysData(recvData.data, callback, {
+                HQData.RecvMinuteDaysData(recvData, callback, {
                     Data: data,
                     Obj: obj,
                 });
@@ -283,7 +188,7 @@ HQData.RequestMinuteDaysData = function (data, callback) {
 };
 
 HQData.RecvMinuteDaysData = function (recvData, callback, option) {
-    var data = recvData.data;
+    var data = recvData;
     var aryDayData = [];
     var itemDay = null;
     var yClose = data.preClose;
@@ -292,7 +197,7 @@ HQData.RecvMinuteDaysData = function (recvData, callback, option) {
     var isStockA = MARKET_SUFFIX_NAME.IsSHSZ(symbolUpper);
 
     var xDatetime = JSChart.GetMinuteTimeStringData().GetTimeData(symbol);
-    var firstTime = xDatetime[0]; //第1个数据的时间
+    var firstTime = xDatetime[0];
     var minuteCount = xDatetime.length;
     var i = 0;
     for (i = 0; i < data.trends.length; ++i) {
@@ -335,17 +240,7 @@ HQData.RecvMinuteDaysData = function (recvData, callback, option) {
 
         if (isStockA) stockItem.vol *= 100;
 
-        itemDay.minute.push([
-            stockItem.time,
-            stockItem.open,
-            stockItem.high,
-            stockItem.low,
-            stockItem.price,
-            stockItem.vol,
-            stockItem.amount,
-            stockItem.avprice,
-            stockItem.date,
-        ]);
+        itemDay.minute.push([stockItem.time, stockItem.open, stockItem.high, stockItem.low, stockItem.price, stockItem.vol, stockItem.amount, stockItem.avprice, stockItem.date]);
     }
 
     if (itemDay && itemDay.minute.length > 0) aryDayData.push(itemDay);
@@ -360,23 +255,20 @@ HQData.RecvMinuteDaysData = function (recvData, callback, option) {
     };
 
     if (option.Data.Self.IsDestroy == false) {
-        //console.log("[HQData.RecvMinuteDaysData] hqchartData ", hqchartData);
         HQData.InvokeCallback(hqchartData, callback);
     }
 };
 
 //期货模式
 HQData.RecvMinuteDaysDataV2 = function (recvData, callback, option) {
-    var data = recvData.data;
+    var data = recvData;
     var aryDayData = [];
     var yClose = data.preClose;
     var symbol = option.Obj.Symbol;
-    var symbolUpper = symbol.toUpperCase();
     var yClearing = data.preSettlement; //期货昨结算价
 
     var xDatetime = JSChart.GetMinuteTimeStringData().GetTimeData(symbol);
     var endTime = xDatetime[xDatetime.length - 1]; //最后个数据的时间
-    var minuteCount = xDatetime.length;
 
     var itemDay = {
         minute: [],
@@ -405,17 +297,7 @@ HQData.RecvMinuteDaysDataV2 = function (recvData, callback, option) {
         };
 
         itemDay.date = date;
-        itemDay.minute.push([
-            stockItem.time,
-            stockItem.open,
-            stockItem.high,
-            stockItem.low,
-            stockItem.price,
-            stockItem.vol,
-            stockItem.amount,
-            stockItem.avprice,
-            stockItem.date,
-        ]);
+        itemDay.minute.push([stockItem.time, stockItem.open, stockItem.high, stockItem.low, stockItem.price, stockItem.vol, stockItem.amount, stockItem.avprice, stockItem.date]);
 
         if (time == endTime) {
             if (itemDay && itemDay.minute.length > 0) aryDayData.push(itemDay);
@@ -469,7 +351,6 @@ HQData.RecvMinuteDaysDataV2 = function (recvData, callback, option) {
     };
 
     if (option.Data.Self.IsDestroy == false) {
-        console.log('[HQData.RecvMinuteDaysDataV2] hqchartData ', hqchartData);
         HQData.InvokeCallback(hqchartData, callback);
     }
 };
@@ -528,7 +409,7 @@ HQData.GetInternalSymbol = function (
 
 HQData.GetMinuteApiUrl = function (symbol, dayCount) {
     var internalSymbol = HQData.GetInternalSymbol(symbol);
-    var url = 'https://server.88xx99.xyz' + `/api/market/stockMinute?stock_id=${internalSymbol.Symbol}&dayCount=${dayCount}`;
+    var url = `https://push2his.eastmoney.com/api/qt/stock/trends2/get?fields1=f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13&fields2=f51,f52,f53,f54,f55,f56,f57,f58&secid=${internalSymbol.Market}.${internalSymbol.Symbol}&ndays=${dayCount}&iscr=0&iscca=0`;
 
     return {
         Url: url,
@@ -556,280 +437,8 @@ HQData.IsShowVolChart = function (
     return true;
 };
 
-///////////////////////////////////////////////////////////////////////////////////////////
-//
-//  美国洲际交易所 重柴油
-//
-HQData.GetCustomTradeTimeData = function (key) {
-    if (key == 'IPE_G') {
-        //美国洲际交易所 重柴油 数据从7：50开始,是盘前数据吗????
-        //7:50-6:00
-        var data = {
-            Name: '7:50-6:00',
-            Data: [
-                {
-                    Start: 750,
-                    End: 2359,
-                },
-                {
-                    Start: 0,
-                    End: 600,
-                },
-            ],
-            Coordinate: {
-                //完整模式
-                Full: [
-                    {
-                        Value: 800,
-                        Text: '8:00',
-                    },
-                    {
-                        Value: 1000,
-                        Text: '10:00',
-                    },
-                    {
-                        Value: 1200,
-                        Text: '12:00',
-                    },
-                    {
-                        Value: 1400,
-                        Text: '14:00',
-                    },
-                    {
-                        Value: 1600,
-                        Text: '16:00',
-                    },
-                    {
-                        Value: 1800,
-                        Text: '18:00',
-                    },
-                    {
-                        Value: 2000,
-                        Text: '20:00',
-                    },
-                    {
-                        Value: 2200,
-                        Text: '22:00',
-                    },
-                    {
-                        Value: 0,
-                        Text: '0:00',
-                    },
-                    {
-                        Value: 200,
-                        Text: '2:00',
-                    },
-                    {
-                        Value: 400,
-                        Text: '4:00',
-                    },
-                    {
-                        Value: 600,
-                        Text: '6:00',
-                    },
-                ],
-                //简洁模式
-                Simple: [
-                    {
-                        Value: 800,
-                        Text: '8:00',
-                    },
-                    {
-                        Value: 1200,
-                        Text: '12:00',
-                    },
-                    {
-                        Value: 1600,
-                        Text: '16:00',
-                    },
-                    {
-                        Value: 2000,
-                        Text: '20:00',
-                    },
-                    {
-                        Value: 0,
-                        Text: '0:00',
-                    },
-                    {
-                        Value: 400,
-                        Text: '4:00',
-                    },
-                    {
-                        Value: 600,
-                        Text: '6:00',
-                    },
-                ],
-                //最小模式
-                Min: [
-                    {
-                        Value: 800,
-                        Text: '8:00',
-                    },
-                    {
-                        Value: 2000,
-                        Text: '20:00',
-                    },
-                    {
-                        Value: 600,
-                        Text: '6:00',
-                    },
-                ],
-            },
-        };
-
-        return data;
-    } else if (key == 'IPE_G_2') {
-        var data =
-            //ID=0 08:50-07:00
-            {
-                Name: '08:50-07:00',
-                Data: [
-                    {
-                        Start: 850,
-                        End: 2359,
-                    },
-                    {
-                        Start: 0,
-                        End: 700,
-                    },
-                ],
-                Coordinate: {
-                    //完整模式
-                    Full: [
-                        {
-                            Value: 900,
-                            Text: '9:00',
-                        },
-                        {
-                            Value: 1100,
-                            Text: '11:00',
-                        },
-                        {
-                            Value: 1300,
-                            Text: '13:00',
-                        },
-                        {
-                            Value: 1500,
-                            Text: '15:00',
-                        },
-                        {
-                            Value: 1700,
-                            Text: '17:00',
-                        },
-                        {
-                            Value: 1900,
-                            Text: '19:00',
-                        },
-                        {
-                            Value: 2100,
-                            Text: '21:00',
-                        },
-                        {
-                            Value: 2300,
-                            Text: '23:00',
-                        },
-                        {
-                            Value: 1,
-                            Text: '1:00',
-                        },
-                        {
-                            Value: 300,
-                            Text: '3:00',
-                        },
-                        {
-                            Value: 500,
-                            Text: '5:00',
-                        },
-                        {
-                            Value: 700,
-                            Text: '7:00',
-                        },
-                    ],
-                    //简洁模式
-                    Simple: [
-                        {
-                            Value: 900,
-                            Text: '9:00',
-                        },
-                        {
-                            Value: 1300,
-                            Text: '13:00',
-                        },
-                        {
-                            Value: 1700,
-                            Text: '17:00',
-                        },
-                        {
-                            Value: 2100,
-                            Text: '21:00',
-                        },
-                        {
-                            Value: 1,
-                            Text: '1:00',
-                        },
-                        {
-                            Value: 500,
-                            Text: '5:00',
-                        },
-                        {
-                            Value: 700,
-                            Text: '7:00',
-                        },
-                    ],
-                    //最小模式
-                    Min: [
-                        {
-                            Value: 900,
-                            Text: '9:00',
-                        },
-                        {
-                            Value: 2100,
-                            Text: '21:00',
-                        },
-                        {
-                            Value: 700,
-                            Text: '7:00',
-                        },
-                    ],
-                },
-            };
-
-        return data;
-    }
-};
-
-////////////////////////////////////////////////////////////////////////////
-// 美股走势图X轴坐标
-//
-////////////////////////////////////////////////////////////////////////////
-HQData.CreateUSAData = function (minuteStringData) {
-    /*
-	//夏令时
-	const TIME_SPLIT =
-	[
-	    { Start: 2130, End: 2359 },
-	    { Start: 0, End: 400 }
-	];
-	*/
-
-    //非夏令时
-    const TIME_SPLIT = [
-        {
-            Start: 2230,
-            End: 2359,
-        },
-        {
-            Start: 0,
-            End: 500,
-        },
-    ];
-
-    return minuteStringData.CreateTimeData(TIME_SPLIT);
-};
-
 HQData.GetUSAData = function (upperSymbol, width) {
     const SHZE_MINUTE_X_COORDINATE = {
-        //完整模式
         Full: [
             [0, 0, 'rgb(200,200,200)', '21:30'],
             [90, 1, 'RGB(200,200,200)', '23:00'],
@@ -839,7 +448,6 @@ HQData.GetUSAData = function (upperSymbol, width) {
             [330, 1, 'RGB(200,200,200)', '03:00'],
             [390, 1, 'RGB(200,200,200)', '04:00'],
         ],
-        //简洁模式
         Simple: [
             [0, 0, 'rgb(200,200,200)', '21:30'],
             [90, 1, 'RGB(200,200,200)', '23:00'],
@@ -847,15 +455,14 @@ HQData.GetUSAData = function (upperSymbol, width) {
             [270, 1, 'RGB(200,200,200)', '02:00'],
             [390, 1, 'RGB(200,200,200)', '04:00'],
         ],
-        //最小模式
         Min: [
             [0, 0, 'rgb(200,200,200)', '21:30'],
             [210, 1, 'RGB(200,200,200)', '01:00'],
             [390, 1, 'RGB(200,200,200)', '04:00'],
         ],
 
-        Count: 391, //!! 一共的分钟数据个数，不要填错了
-        MiddleCount: 195, // Count/2 就可以。
+        Count: 391,
+        MiddleCount: 195,
 
         GetData: function (width) {
             if (width < 200) return this.Min;
@@ -868,296 +475,13 @@ HQData.GetUSAData = function (upperSymbol, width) {
     return SHZE_MINUTE_X_COORDINATE;
 };
 
-////////////////////////////////////////////////////////////////////////////
-// A股走势图X轴坐标
-//
-///////////////////////////////////////////////////////////////////////////
-HQData.CreateSHSZData = function (minuteStringData) {
-    const TIME_SPLIT = [
-        {
-            Start: 930,
-            End: 1130,
-        },
-        {
-            Start: 1301,
-            End: 1500,
-        },
-    ];
-
-    return minuteStringData.CreateTimeData(TIME_SPLIT);
-};
-
-HQData.GetSHSZData = function (upperSymbol, width) {
-    const SHZE_MINUTE_X_COORDINATE = {
-        //完整模式
-        Full: [
-            [0, 0, 'rgb(200,200,200)', '09:30'],
-            [31, 0, 'RGB(200,200,200)', '10:00'],
-            [61, 0, 'RGB(200,200,200)', '10:30'],
-            [91, 0, 'RGB(200,200,200)', '11:00'],
-            [120, 1, 'RGB(200,200,200)', '11:30'],
-            [150, 0, 'RGB(200,200,200)', '13:30'],
-            [180, 0, 'RGB(200,200,200)', '14:00'],
-            [210, 0, 'RGB(200,200,200)', '14:30'],
-            [240, 1, 'RGB(200,200,200)', '15:00'], // 15:00
-        ],
-        //简洁模式
-        Simple: [
-            [0, 0, 'rgb(200,200,200)', '09:30'],
-            [61, 0, 'RGB(200,200,200)', '10:30'],
-            [120, 1, 'RGB(200,200,200)', '11:30'],
-            [180, 0, 'RGB(200,200,200)', '14:00'],
-            [240, 1, 'RGB(200,200,200)', '15:00'],
-        ],
-        //最小模式
-        Min: [
-            [0, 0, 'rgb(200,200,200)', '09:30'],
-            [120, 1, 'RGB(200,200,200)', '11:30'],
-            [240, 1, 'RGB(200,200,200)', '15:00'],
-        ],
-
-        Count: 241, //!! 一共的分钟数据个数，不要填错了
-        MiddleCount: 121, // Count/2 就可以。
-
-        GetData: function (width) {
-            if (width < 200) return this.Min;
-            else if (width < 400) return this.Simple;
-
-            return this.Full;
-        },
-    };
-
-    return SHZE_MINUTE_X_COORDINATE;
-};
-
-///////////////////////////////////////////////////////////////////////////////////////
-// 港股走势图X轴坐标
-//
-///////////////////////////////////////////////////////////////////////////////////////
-HQData.CreateHKData = function (minuteStringData) {
-    const TIME_SPLIT = [
-        {
-            Start: 930,
-            End: 1200,
-        },
-        {
-            Start: 1301,
-            End: 1600,
-        },
-    ];
-
-    return minuteStringData.CreateTimeData(TIME_SPLIT);
-};
-
-HQData.GetHKData = function (upperSymbol, width) {
-    const HK_MINUTE_X_COORDINATE = {
-        //完整模式
-        Full: [
-            [0, 1, 'RGB(200,200,200)', '09:30'],
-            [30, 0, 'RGB(200,200,200)', '10:00'],
-            [60, 1, 'RGB(200,200,200)', '10:30'],
-            [90, 0, 'RGB(200,200,200)', '11:00'],
-            [120, 1, 'RGB(200,200,200)', '11:30'],
-            [151, 0, 'RGB(200,200,200)', '13:00'],
-            [181, 1, 'RGB(200,200,200)', '13:30'],
-            [211, 0, 'RGB(200,200,200)', '14:00'],
-            [241, 1, 'RGB(200,200,200)', '14:30'],
-            [271, 0, 'RGB(200,200,200)', '15:00'],
-            [301, 1, 'RGB(200,200,200)', '15:30'],
-            [331, 1, 'RGB(200,200,200)', '16:00'],
-        ],
-        //简洁模式
-        Simple: [
-            [0, 1, 'RGB(200,200,200)', '09:30'],
-            [60, 1, 'RGB(200,200,200)', '10:30'],
-            [120, 1, 'RGB(200,200,200)', '11:30'],
-            [211, 0, 'RGB(200,200,200)', '14:00'],
-            [271, 0, 'RGB(200,200,200)', '15:00'],
-            [331, 1, 'RGB(200,200,200)', '16:00'],
-        ],
-        //最小模式
-        Min: [
-            [0, 1, 'RGB(200,200,200)', '09:30'],
-            [151, 0, 'RGB(200,200,200)', '13:00'],
-            [331, 1, 'RGB(200,200,200)', '16:00'],
-        ],
-
-        Count: 331,
-        MiddleCount: 150,
-
-        GetData: function (width) {
-            if (width < 200) return this.Min;
-            else if (width < 450) return this.Simple;
-
-            return this.Full;
-        },
-    };
-    return HK_MINUTE_X_COORDINATE;
-};
-
-////////////////////////////////////////////////////////////////////////////////////////
-//  外汇走势图X轴坐标
-//
-////////////////////////////////////////////////////////////////////////////////////////
-HQData.CreateForeignExchangeData = function (minuteStringData) {
-    //外汇 5:00 - 4:59
-    const TIME_SPLIT = [
-        {
-            Start: 500,
-            End: 2359,
-        },
-        {
-            Start: 0,
-            End: 459,
-        },
-    ];
-
-    return minuteStringData.CreateTimeData(TIME_SPLIT);
-};
-
-HQData.GetForeignExchangeData = function (upperSymbol, width) {
-    const FOREX_MINUTE_X_COORDINATE = {
-        //完整模式
-        Full: [
-            [0, 1, 'RGB(200,200,200)', '05:00'],
-            [120, 1, 'RGB(200,200,200)', '07:00'],
-            [240, 1, 'RGB(200,200,200)', '09:00'],
-            [360, 1, 'RGB(200,200,200)', '11:00'],
-            [480, 0, 'RGB(200,200,200)', '13:00'],
-            [600, 1, 'RGB(200,200,200)', '15:00'],
-            [720, 1, 'RGB(200,200,200)', '17:00'],
-            [840, 1, 'RGB(200,200,200)', '19:00'],
-            [960, 1, 'RGB(200,200,200)', '21:00'],
-            [1080, 1, 'RGB(200,200,200)', '23:00'],
-            [1200, 1, 'RGB(200,200,200)', '01:00'],
-            [1320, 1, 'RGB(200,200,200)', '03:00'],
-            [1439, 1, 'RGB(200,200,200)', '04:59'],
-        ],
-        //简洁模式
-        Simple: [
-            [0, 1, 'RGB(200,200,200)', '06:00'],
-            [240, 1, 'RGB(200,200,200)', '10:00'],
-            [480, 0, 'RGB(200,200,200)', '14:00'],
-            [720, 1, 'RGB(200,200,200)', '18:00'],
-            [960, 1, 'RGB(200,200,200)', '22:00'],
-            [1200, 1, 'RGB(200,200,200)', '02:00'],
-        ],
-        //最小模式
-        Min: [
-            [0, 1, 'RGB(200,200,200)', '06:00'],
-            [480, 0, 'RGB(200,200,200)', '14:00'],
-            [960, 1, 'RGB(200,200,200)', '22:00'],
-        ],
-
-        Count: 1440,
-        MiddleCount: 600,
-
-        GetData: function (width) {
-            if (width < 200) return this.Min;
-            else if (width < 450) return this.Simple;
-
-            return this.Full;
-        },
-    };
-
-    return FOREX_MINUTE_X_COORDINATE;
-};
-
-////////////////////////////////////////////////////////////////////////
-//  美元指数
-//
-///////////////////////////////////////////////////////////////////////
-HQData.GetETTimeData = function (upperSymbol, minuteStringData) {
-    if (upperSymbol == 'UDI_100.ET') {
-        //美元指数 6:00 - 5:59
-        const TIME_SPLIT = [
-            {
-                Start: 600,
-                End: 2359,
-            },
-            {
-                Start: 0,
-                End: 559,
-            },
-        ];
-
-        return minuteStringData.CreateTimeData(TIME_SPLIT);
-    }
-};
-
-HQData.GetETData = function (upperSymbol) {
-    if (upperSymbol == 'UDI_100.ET') {
-        const data = {
-            //完整模式
-            Full: [
-                [0, 1, 'RGB(200,200,200)', '06:00'],
-                [120, 1, 'RGB(200,200,200)', '08:00'],
-                [240, 1, 'RGB(200,200,200)', '10:00'],
-                [360, 1, 'RGB(200,200,200)', '12:00'],
-                [480, 0, 'RGB(200,200,200)', '14:00'],
-                [600, 1, 'RGB(200,200,200)', '16:00'],
-                [720, 1, 'RGB(200,200,200)', '18:00'],
-                [840, 1, 'RGB(200,200,200)', '20:00'],
-                [960, 1, 'RGB(200,200,200)', '22:00'],
-                [1080, 1, 'RGB(200,200,200)', '0:00'],
-                [1200, 1, 'RGB(200,200,200)', '02:00'],
-                [1320, 1, 'RGB(200,200,200)', '04:00'],
-                [1439, 1, 'RGB(200,200,200)', '05:59'],
-            ],
-            //简洁模式
-            Simple: [
-                [0, 1, 'RGB(200,200,200)', '06:00'],
-                [240, 1, 'RGB(200,200,200)', '10:00'],
-                [480, 0, 'RGB(200,200,200)', '14:00'],
-                [720, 1, 'RGB(200,200,200)', '18:00'],
-                [960, 1, 'RGB(200,200,200)', '22:00'],
-                [1200, 1, 'RGB(200,200,200)', '02:00'],
-                [1439, 1, 'RGB(200,200,200)', '05:59'],
-            ],
-            //最小模式
-            Min: [
-                [0, 1, 'RGB(200,200,200)', '06:00'],
-                [720, 1, 'RGB(200,200,200)', '18:00'],
-                [1439, 1, 'RGB(200,200,200)', '05:59'],
-            ],
-
-            Count: 1440,
-            MiddleCount: 600,
-
-            GetData: function (width) {
-                if (width < 200) return this.Min;
-                else if (width < 450) return this.Simple;
-
-                return this.Full;
-            },
-        };
-
-        return data;
-    }
-};
-
-HQData.GetETDecimal = function (symbol) {
-    var upperSymbol = symbol.toUpperCase();
-    if (upperSymbol == 'UDI.ET') return 2;
-
-    return 2;
-};
-
-///////////////////////////////////////////////////////////////////////////////////
-//K线数据对接
-//
-/////////////////////////////////////////////////////////////////////////////////
 HQData.GetKLineApiUrl = function (symbol, period, right, option) {
     var internalSymbol = HQData.GetInternalSymbol(symbol);
-    var internalPeriod = HQData.GetInternalPeriod(period);
-    var internalRight = HQData.GetInternalRight(right);
-    console.log('****************************************111***', internalPeriod, period);
 
     if (option && option.Update == true) {
-        var beginDate = option.End;
-        var url = 'https://server.88xx99.xyz' + `/api/market/stockKline?stock_id=5390&type=1day`;
+        var url = getBaseURL() + `/api/market/stockKline?stock_id=5390&type=1h`;
     } else {
-        var url = 'https://server.88xx99.xyz' + `/api/market/stockKline?stock_id=5390&type=1day`;
+        var url = getBaseURL() + `/api/market/stockKline?stock_id=5390&type=1h`;
     }
 
     return {
@@ -1173,9 +497,9 @@ HQData.GetMinuteKLineApiUrl = function (symbol, period, right, option) {
     var internalSymbol = HQData.GetInternalSymbol(symbol);
 
     if (option && option.Update == true) {
-        var url = 'https://server.88xx99.xyz';
+        var url = getBaseURL() + `/api/market/stockKline?stock_id=5390&type=1h`;
     } else {
-        var url = 'https://server.88xx99.xyz';
+        var url = getBaseURL() + `/api/market/stockKline?stock_id=5390&type=1h`;
     }
 
     return {
@@ -1189,15 +513,14 @@ HQData.GetMinuteKLineApiUrl = function (symbol, period, right, option) {
 
 HQData.GetInternalPeriod = function (periodID) {
     var MAP_PERIOD = new Map([
-        [0, 101], //day
-        [1, 102], //week
-        [2, 103], //month
-
-        [4, 1], //1day
-        [5, 5], //5min
-        [6, 15], //15min
-        [7, 30], //30min
-        [8, 60], //60min
+        [0, 101],
+        [1, 102],
+        [2, 103],
+        [4, 1],
+        [5, 5],
+        [6, 15],
+        [7, 30],
+        [8, 60],
     ]);
 
     return MAP_PERIOD.get(periodID);
@@ -1209,10 +532,7 @@ HQData.GetInternalRight = function (right) {
     else return 2;
 };
 
-HQData.IsEnableRight = function (
-    period,
-    symbol //是否支持复权
-) {
+HQData.IsEnableRight = function (period, symbol) {
     var symbolUpper = symbol.toUpperCase();
     if (MARKET_SUFFIX_NAME.IsSHSZStockA(symbolUpper)) return true;
     if (MARKET_SUFFIX_NAME.IsBJStock(symbolUpper)) return true;
@@ -1223,40 +543,26 @@ HQData.IsEnableRight = function (
     var market = parseInt(arySymbol[1]);
 
     if (MARKET_SUFFIX_NAME.IsHK(symbolUpper)) {
-        if (market == 100) return false; //指数不支持复权
+        if (market == 100) return false;
         return true;
     }
 
     if (MARKET_SUFFIX_NAME.IsUSA(symbolUpper)) {
-        if (market == 100) return false; //指数不支持复权
+        if (market == 100) return false;
         return true;
     }
 
     return false;
 };
 
-HQData.RequestFlowCapitalData = function (data, callback) {
+HQData.RequestHistoryData = function (data, callback, stock_id) {
     data.PreventDefault = true;
-    var hqChartData = {
-        code: 0,
-        stock: [],
-    }; //如果没有数据就填空
+    var symbol = data.Request.Data.symbol;
+    var period = data.Self.Period;
+    var right = data.Self.Right;
 
-    if (data.Self.IsDestroy == false) {
-        callback(hqChartData);
-    }
-};
-
-HQData.RequestHistoryData = async function (data, callback, stock_id) {
-    data.PreventDefault = true;
-    var symbol = data.Request.Data.symbol; //请求的股票代码
-    var period = data.Self.Period; //周期
-    var right = data.Self.Right; //复权
-
-    console.log(`[HQData::RequestHistoryData] Symbol=${symbol}, Period=${period}`);
     var obj = HQData.GetKLineApiUrl(symbol, period, right, null);
-
-    //拼接请求参数
+    let datas = uni.getStorageSync('storage_data');
     let params = {
         stock_id: stock_id,
         type: '',
@@ -1271,9 +577,6 @@ HQData.RequestHistoryData = async function (data, callback, stock_id) {
         case 2:
             params.type = '1month';
             break;
-        case 4:
-            params.type = '1min';
-            break;
         case 5:
             params.type = '5min';
             break;
@@ -1282,10 +585,11 @@ HQData.RequestHistoryData = async function (data, callback, stock_id) {
             break;
     }
 
-    const r = await astock.stockKlineApi({ stock_id: stock_id || '5730', type: params.type });
-    HQData.RecvHistoryData(r, callback, {
-        Data: data,
-        Obj: obj,
+    astock.stockKlineApi(params).then(recvData => {
+        HQData.RecvHistoryData(recvData, callback, {
+            Data: data,
+            Obj: obj,
+        });
     });
 };
 
@@ -1297,8 +601,6 @@ HQData.RecvHistoryData = function (recvData, callback, option) {
         data: [],
     };
     hqChartData.symbol = option.Obj.Symbol;
-    // hqChartData.name = '123';
-    // console.log("111111111111111111111111111111111111111111111111111111111111111111111111", option.Obj.Symbol);
 
     var yClose = 15.5;
     for (var i = 0; i < data.length; ++i) {
@@ -1319,73 +621,57 @@ HQData.RecvHistoryData = function (recvData, callback, option) {
 
         yClose = close;
     }
-    console.log(option.Data.Self.IsDestroy, '00000099999======');
-    HQData.InvokeCallback(hqChartData, callback);
-    if (option.Data.Self.IsDestroy == false) {
-        //console.log("[HQData.RecvHistoryData] hqchartData ", hqChartData);
 
+    if (option.Data.Self.IsDestroy == false) {
         HQData.InvokeCallback(hqChartData, callback);
     }
 };
 
 HQData.RequestRealtimeData = function (data, callback, stock_id) {
     data.PreventDefault = true;
-    var symbol = data.Request.Data.symbol[0]; //请求的股票代码
-    var period = data.Self.Period; //周期
-    var right = data.Self.Right; //复权
+    var symbol = data.Request.Data.symbol[0];
+    var period = data.Self.Period;
+    var right = data.Self.Right;
+
     var dateRange = data.Self.ChartPaint[0].Data.GetDateRange();
 
     var option = {
         Update: true,
     };
     if (dateRange && dateRange.End && dateRange.End.Date > 0) option.End = dateRange.End.Date;
-
-    console.log(`[HQData::RequestRealtimeData] Symbol=${symbol}`, period);
     var obj = HQData.GetKLineApiUrl(symbol, period, right, option);
     let params = {
         stock_id: stock_id,
         type: '',
     };
     switch (period) {
-        case 0:
-            params.type = '1day';
-            break;
-        case 1:
-            params.type = '1week';
-            break;
-        case 2:
-            params.type = '1month';
-            break;
-        case 4:
-            params.type = '1min';
-            break;
         case 5:
             params.type = '5min';
             break;
+        case 6:
+            params.type = '15min';
+            break;
+        case 7:
+            params.type = '30min';
+            break;
+        case 8:
+            params.type = '1h';
+            break;
         default:
-            params.type = '1day';
+            params.type = '5min';
             break;
     }
-    console.log('4444444444444444444444444444444441111111111111111111111111111111111');
-    wx.request({
-        url: obj.Url,
-        type: 'GET',
-        data: params,
-        header: {
-            clang: 'cn',
-            server: 'true',
-        },
-        success: function (recvData) {
-            HQData.RecvRealtimeData(recvData.data, callback, {
-                Data: data,
-                Obj: obj,
-            });
-        },
+
+    astock.stockKlineApi(params).then(recvData => {
+        HQData.RecvRealtimeData(recvData, callback, {
+            Data: data,
+            Obj: obj,
+        });
     });
 };
 
 HQData.RecvRealtimeData = function (recvData, callback, option) {
-    var data = recvData.data;
+    var data = recvData;
     var stock = {
         symbol: option.Obj.Symbol,
         name: data.name,
@@ -1423,72 +709,51 @@ HQData.RecvRealtimeData = function (recvData, callback, option) {
     };
 
     if (option.Data.Self.IsDestroy == false) {
-        console.log('[HQData.RecvRealtimeData] hqchartData ', hqchartData);
         HQData.InvokeCallback(hqchartData, callback);
     }
 };
 
-HQData.RequestHistoryMinuteData = async function (data, callback, stock_id) {
+HQData.RequestHistoryMinuteData = function (data, callback, stock_id) {
     data.PreventDefault = true;
-    var symbol = data.Request.Data.symbol; //请求的股票代码
-    var period = data.Self.Period; //周期
-    var right = data.Self.Right; //复权
+    var symbol = data.Request.Data.symbol;
+    var period = data.Self.Period;
+    var right = data.Self.Right;
 
-    console.log(`[HQData::RequestHistoryMinuteData] Symbol=${symbol}`);
     var obj = HQData.GetMinuteKLineApiUrl(symbol, period, right, null);
-    console.log('分钟请求的api', stock_id, period);
+
     let params = {
         stock_id: stock_id,
         type: '',
     };
     switch (period) {
-        case 0:
-            params.type = '1day';
-            break;
-        case 1:
-            params.type = '1week';
-            break;
-        case 2:
-            params.type = '1month';
-            break;
         case 4:
             params.type = '1min';
             break;
         case 5:
             params.type = '5min';
             break;
+        case 6:
+            params.type = '15min';
+            break;
+        case 7:
+            params.type = '30min';
+            break;
+        case 8:
+            params.type = '1h';
+            break;
         default:
-            params.type = '1day';
+            params.type = '5min';
             break;
     }
-    const r = await astock.stockKlineApi({ stock_id: stock_id || '5730', type: params.type });
-    HQData.RecvHistoryData(r, callback, {
-        Data: data,
-        Obj: obj,
+    astock.stockKlineApi(params).then(recvData => {
+        HQData.RecvHistoryMinuteData(recvData, callback, {
+            Data: data,
+            Obj: obj,
+        });
     });
-    // wx.request(
-    //     {
-    //         url: obj.Url,
-    //         type: "GET",
-    //         data: params,
-    //         header: { 'clang': 'cn', "server": 'true' },
-    //         success: function (recvData) {
-    //             HQData.RecvHistoryMinuteData(recvData.data, callback, { Data: data, Obj: obj });
-    //         }
-    //     });
-    // wx.request(
-    //     {
-    //         url: obj.Url,
-    //         type: "GET",
-    //         success: function (recvData) {
-    //             HQData.RecvHistoryMinuteData(recvData.data, callback, { Data: data, Obj: obj });
-    //         }
-    //     });
 };
 
 HQData.RecvHistoryMinuteData = function (recvData, callback, option) {
-    console.log(recvData, '----------');
-
     var data = recvData;
 
     var hqChartData = {
@@ -1499,7 +764,6 @@ HQData.RecvHistoryMinuteData = function (recvData, callback, option) {
     hqChartData.name = '';
 
     var yClose = data.preKPrice;
-    console.log('yClose==============', yClose);
 
     for (var i = 0; i < data.length; ++i) {
         var strItem = data[i];
@@ -1522,16 +786,15 @@ HQData.RecvHistoryMinuteData = function (recvData, callback, option) {
     }
 
     if (option.Data.Self.IsDestroy == false) {
-        console.log('[HQData.RecvHistoryMinuteData] hqchartData ', hqChartData, '======ddddddd=====');
         HQData.InvokeCallback(hqChartData, callback);
     }
 };
 
-HQData.RequestMinuteRealtimeData = async function (data, callback, stock_id) {
+HQData.RequestMinuteRealtimeData = function (data, callback, stock_id) {
     data.PreventDefault = true;
-    var symbol = data.Request.Data.symbol[0]; //请求的股票代码
-    var period = data.Self.Period; //周期
-    var right = data.Self.Right; //复权
+    var symbol = data.Request.Data.symbol[0];
+    var period = data.Self.Period;
+    var right = data.Self.Right;
     var dateRange = data.Self.ChartPaint[0].Data.GetDateRange();
 
     var option = {
@@ -1539,9 +802,8 @@ HQData.RequestMinuteRealtimeData = async function (data, callback, stock_id) {
     };
     if (dateRange && dateRange.End && dateRange.End.Date > 0) option.End = dateRange.End.Date;
 
-    console.log(`[HQData::RequestMinuteRealtimeData] Symbol=${symbol}`);
     var obj = HQData.GetMinuteKLineApiUrl(symbol, period, right, option);
-    console.log('666666666666666666666666666666666666666');
+
     let params = {
         stock_id: stock_id,
         type: '',
@@ -1566,21 +828,13 @@ HQData.RequestMinuteRealtimeData = async function (data, callback, stock_id) {
             params.type = '1day';
             break;
     }
-    const r = await astock.stockKlineApi({ stock_id: stock_id || '5730', type: params.type });
-    HQData.RecvHistoryData(r, callback, {
-        Data: data,
-        Obj: obj,
+
+    astock.stockKlineApi(params).then(recvData => {
+        HQData.RecvMinuteRealtimeData(recvData, callback, {
+            Data: data,
+            Obj: obj,
+        });
     });
-    // wx.request(
-    //     {
-    //         url: obj.Url,
-    //         type: "GET",
-    //         data: params,
-    //         header: { 'clang': 'cn', "server": 'true' },
-    //         success: function (recvData) {
-    //             HQData.RecvMinuteRealtimeData(recvData.data, callback, { Data: data, Obj: obj });
-    //         }
-    //     });
 };
 
 HQData.RecvMinuteRealtimeData = function (recvData, callback, option) {
@@ -1615,123 +869,8 @@ HQData.RecvMinuteRealtimeData = function (recvData, callback, option) {
     }
 
     if (option.Data.Self.IsDestroy == false) {
-        //console.log("[HQData.RecvMinuteRealtimeData] hqchartData ", hqChartData);
         HQData.InvokeCallback(hqChartData, callback);
     }
-};
-
-HQData.RequestSymbolData = function (data, callback) {
-    data.PreventDefault = true;
-    var symbol = data.Request.Data.symbol;
-    var period = data.Self.Period; //周期
-    var right = data.Self.Right; //复权
-
-    console.log(`[HQData::RequestSymbolData] Symbol=${symbol} Period=${period} Right=${right}`);
-
-    if (H5_HQChart.ChartData.IsDayPeriod(period, true)) {
-        //日K
-        var obj = HQData.GetKLineApiUrl(symbol, period, right, null);
-        console.log('7777777777777777777777777777777777777777');
-        wx.request({
-            url: obj.Url,
-            type: 'GET',
-            success: function (recvData) {
-                HQData.RecvSymbolData_Day(recvData.data, callback, {
-                    Data: data,
-                    Obj: obj,
-                });
-            },
-        });
-    } else if (H5_HQChart.ChartData.IsMinutePeriod(period, true)) {
-        //分钟K
-        var obj = HQData.GetMinuteKLineApiUrl(symbol, period, right, null);
-        console.log('88888888888888888888888888888888888888888');
-        wx.request({
-            url: obj.Url,
-            type: 'GET',
-            success: function (recvData) {
-                HQData.RecvSymbolData_Minute(recvData.data, callback, {
-                    Data: data,
-                    Obj: obj,
-                });
-            },
-        });
-    }
-};
-
-HQData.RecvSymbolData_Day = function (
-    recvData,
-    callback,
-    option //日K
-) {
-    var data = recvData.data;
-
-    var hqChartData = {
-        code: 0,
-        data: [],
-    };
-    hqChartData.symbol = option.Obj.Symbol;
-    hqChartData.name = data.name;
-
-    var yClose = data.preKPrice;
-    for (var i = 0; i < data.klines.length; ++i) {
-        var strItem = data.klines[i];
-        var item = strItem.split(',');
-        var today = new Date(Date.parse(item[0]));
-        var date = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
-
-        var open = parseFloat(item[1]);
-        var close = parseFloat(item[2]);
-        var high = parseFloat(item[3]);
-        var low = parseFloat(item[4]);
-        var vol = parseFloat(item[5]) * 100;
-        var amount = parseFloat(item[6]);
-
-        var newItem = [date, yClose, open, high, low, close, vol, amount];
-        hqChartData.data.push(newItem);
-
-        yClose = close;
-    }
-
-    HQData.InvokeCallback(hqChartData, callback);
-};
-
-HQData.RecvSymbolData_Minute = function (
-    recvData,
-    callback,
-    option //分钟K
-) {
-    var data = recvData.data;
-
-    var hqChartData = {
-        code: 0,
-        data: [],
-    };
-    hqChartData.symbol = option.Obj.Symbol;
-    hqChartData.name = data.name;
-
-    var yClose = data.preKPrice;
-    for (var i = 0; i < data.klines.length; ++i) {
-        var strItem = data.klines[i];
-        var item = strItem.split(',');
-        var today = HQData.StringToDateTime(item[0]);
-        var date = today.Date;
-        var time = today.Time;
-
-        var open = parseFloat(item[1]);
-        var close = parseFloat(item[2]);
-        var high = parseFloat(item[3]);
-        var low = parseFloat(item[4]);
-        var vol = parseFloat(item[5]) * 100;
-        var amount = parseFloat(item[6]);
-
-        var newItem = [date, yClose, open, high, low, close, vol, amount, time];
-        hqChartData.data.push(newItem);
-
-        yClose = close;
-    }
-
-    HQData.InvokeCallback(hqChartData, callback);
 };
 
 export const EastMoney = {
