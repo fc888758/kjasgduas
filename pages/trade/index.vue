@@ -179,10 +179,7 @@
                                 <text class="detail-label">中签时间</text>
                                 <text class="detail-value">{{ item.win_time }}</text>
                             </view>
-                            <view class="detail-row" v-if="item.win_shares">
-                                <text class="detail-label">中签股数</text>
-                                <text class="detail-value">{{ item.win_shares }}</text>
-                            </view>
+
                             <view class="detail-row" v-if="item.payable_amount">
                                 <text class="detail-label">应缴金额</text>
                                 <text class="detail-value">{{ item.payable_amount }}</text>
@@ -190,6 +187,10 @@
                             <view class="detail-row" v-if="item.already_price">
                                 <text class="detail-label">认缴金额</text>
                                 <text class="detail-value">{{ item.already_price }}</text>
+                            </view>
+                            <view class="detail-row" v-if="item.win_shares">
+                                <text class="detail-label">中签股数</text>
+                                <text class="detail-value">{{ item.win_shares }}</text>
                             </view>
                             <view class="detail-row" v-if="item.paid_amount">
                                 <text class="detail-label">已缴金额</text>
@@ -968,8 +969,6 @@ page {
     //background-color: #fff;
     border-radius: 20rpx;
     position: fixed;
-    top: 0;
-    z-index: 1000;
 
     .left-menu {
         padding: 0 20rpx;
