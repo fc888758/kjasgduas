@@ -140,13 +140,22 @@
                                 <text class="stock-code">{{ item.symbol }}</text>
                             </view>
                             <view class="stock-exchange" v-if="item.issue">{{ item.issue }}</view>
+
                             <view
                                 class="detail-row"
                                 v-if="
-                                    item.order_status &&
-                                    currentNav[0] == 0 &&
-                                    currentNav[1] == 2 &&
-                                    item.order_status != 1
+                                    (item.order_status &&
+                                        item.order_status != 1 &&
+                                        currentNav[0] == 0 &&
+                                        currentNav[1] == 2) ||
+                                    (item.order_status &&
+                                        item.order_status != 1 &&
+                                        currentNav[0] == 0 &&
+                                        currentNav[1] == 3) ||
+                                    (currentNav[0] == 0 && currentNav[1] == 1) ||
+                                    (currentNav[0] == 1 && currentNav[1] == 1) ||
+                                    (currentNav[0] == 1 && currentNav[1] == 2) ||
+                                    (currentNav[0] == 1 && currentNav[1] == 3)
                                 "
                             >
                                 <text
