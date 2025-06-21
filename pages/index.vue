@@ -99,26 +99,6 @@ export default {
     },
     methods: {
         handleTabChange(tab) {
-            if (tab == 'trade') {
-                const userInfo = uni.getStorageSync('userInfo');
-                if (!userInfo) {
-                    uni.showModal({
-                        title: '温馨提示',
-                        content: '您还未进行登录/注册',
-                        cancelText: '取消',
-                        confirmText: '去登录/注册',
-                        success: (res) => {
-                            if (res.confirm) {
-                                this.$tab.navigateTo('/pages/mine/login');
-                                return false;
-                            } else {
-                                return false;
-                            }
-                        }
-                    });
-                    return false;
-                }
-            }
             this.$tab.navigateTo('/pages/' + tab + '/index');
         },
         // 联系客服方法

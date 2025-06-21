@@ -127,7 +127,7 @@ export default {
         toggleAgreement() {
             this.agreeToTerms = !this.agreeToTerms;
         },
-        handleLogin() {
+        async handleLogin() {
             // 验证用户协议
             if (!this.agreeToTerms) {
                 this.$modal.msgError('请先同意用户协议和隐私政策');
@@ -162,14 +162,15 @@ export default {
             this.$modal.loading('登录中...');
 
             // 实现登录逻辑
-            this.$api.checkIn(this.loginForm).then(res => {
-                this.$modal.closeLoading();
+            const res = await this.$api.checkIn(this.loginForm);
+            if (res) {
                 uni.setStorageSync('userToken', res.token);
-                this.$modal.msgSuccess('登录成功');
                 this.$tab.redirectTo('/pages/mine/index');
-            });
+            }
+
+
         },
-        handleRegister() {
+        async handleRegister() {
             // 验证用户协议
             if (!this.agreeToTerms) {
                 this.$modal.msgError('请先同意用户协议和隐私政策');
@@ -218,9 +219,6 @@ export default {
                 return;
             }
 
-            // 显示加载提示
-            this.$modal.loading('注册中...');
-
             // 准备注册参数
             const params = {
                 mobile: this.registerForm.mobile,
@@ -229,14 +227,16 @@ export default {
                 tab: 'register', // 标识这是注册请求
             };
 
+            // 显示加载提示
+            this.$modal.loading('注册中...');
+
             // 调用注册API
-            this.$api.checkIn(params)
-                .then(res => {
-                    this.$modal.closeLoading();
-                    uni.setStorageSync('userToken', res.token);
-                    this.$modal.msgSuccess('注册成功');
-                    this.$tab.redirectTo('/pages/mine/index');
-                });
+            const res = await this.$api.checkIn(params);
+            if (res) {
+                uni.setStorageSync('userToken', res.token);
+                this.$tab.redirectTo('/pages/mine/index');
+            }
+
         },
         viewAgreement(type) {
             this.$tab.navigateTo('/pages/mine/agreement?type=' + type);

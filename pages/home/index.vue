@@ -286,23 +286,6 @@
                         this.$tab.navigateTo('/pages/market/index');
                         break;
                     case 9:
-                        if (!this.userInfo) {
-                            uni.showModal({
-                                title: '温馨提示',
-                                content: '您还未进行登录/注册',
-                                cancelText: '取消',
-                                confirmText: '去登录/注册',
-                                success: res => {
-                                    if (res.confirm) {
-                                        this.$tab.navigateTo('/pages/mine/login');
-                                        return false;
-                                    } else {
-                                        return false;
-                                    }
-                                },
-                            });
-                            return false;
-                        }
                         this.$tab.navigateTo('/pages/trade/index');
                         break;
                     case 10:

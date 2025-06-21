@@ -13,12 +13,14 @@
             <view v-if="allocationList?.length > 0">
                 <view v-for="(item, index) in allocationList" :key="index" class="allocation-item">
                     <view class="name-code-section">
-                        
-                        <span class="stock-name">{{ item.name }}<text class="annotation">(剩余股数 {{ item.residue_number }})</text></span>
+
+                        <span class="stock-name">{{ item.name }}<text class="annotation">(剩余股数:{{ item.residue_number
+                        }})</text></span>
                         <view class="stock-code">
                             <text>配售: {{ item.symbol }}</text>
                             <text>上市: {{ item.symbol }}</text>
-                            <text class="annotation">*最低配售{{item.min_buy_number}}股起 配售需要保证可用资金充足</text>
+                            <text class="annotation">*最低配售{{ item.min_buy_number }}股起</text>
+                            <text class="annotation">*配售需要保证可用资金充足</text>
                         </view>
                     </view>
                     <view class="price-section">
@@ -124,6 +126,8 @@ export default {
 
             // 不需要密码验证，直接申购
             this.processApply(item);
+            // 恢复按钮状态
+            this.$set(item, 'isLoading', false);
         },
 
         // 处理申购逻辑
@@ -139,9 +143,8 @@ export default {
             // 密码正确或不需要密码，继续申购
             this.closePasswordPopup();
             await this.$api.addPlacementOrder(params);
+            item.residue_number -= item.inputQuantity;
             item.inputQuantity = '';
-            // 恢复按钮状态
-            this.$set(item, 'isLoading', false);
         },
         // 关闭密码弹窗
         closePasswordPopup() {
@@ -201,7 +204,7 @@ export default {
                 color: #999;
 
                 &.name-code {
-                    flex: 2;
+                    flex: 2.5;
                     text-align: left;
                 }
 
@@ -229,13 +232,15 @@ export default {
             border-bottom: 1px solid #f0f0f0;
 
             .name-code-section {
-                flex: 2;
-                .annotation{
-                    font-size: 20rpx;
-                    color: red;
+                flex: 2.5;
+
+                .annotation {
+                    font-size: 22rpx;
+                    color: #ffca00;
                 }
+
                 .stock-name {
-                    font-size: 28rpx;
+                    font-size: 30rpx;
                     font-weight: bold;
                     color: #333;
                     margin-bottom: 10rpx;
@@ -243,7 +248,7 @@ export default {
                 }
 
                 .stock-code {
-                    font-size: 20rpx;
+                    font-size: 24rpx;
                     color: #999;
                     display: flex;
                     flex-direction: column;
@@ -264,7 +269,7 @@ export default {
                     margin-top: 10rpx;
                     font-size: 32rpx;
                     font-weight: 500;
-                    color: #e4393c;
+                    color: #ffca00;
                 }
 
                 .price-label {

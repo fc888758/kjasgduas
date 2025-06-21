@@ -8,6 +8,7 @@ const whiteList = [
     '/pages/mine/transactionRecord',
     '/pages/mine/bankCard',
     '/pages/trade/buy',
+    '/pages/trade/index',
 ];
 
 // 初始化导航拦截器
