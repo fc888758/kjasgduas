@@ -666,7 +666,7 @@ export default {
                     name: item?.stock_name,
                     exchange: item?.exchange,
                     symbol: item?.symbol,
-                    paid_amount: item?.award_number,
+                    paid_amount: item?.already_price,
                     payable_amount: item?.payable_amount,
                     sell_current_price: item?.sell_current_price,
                     subscribe_number: item?.subscribe_number,
