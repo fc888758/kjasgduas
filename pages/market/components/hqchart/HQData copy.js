@@ -1,12 +1,59 @@
+/*
+   Copyright (c) 2018 jones
+ 
+    http://www.apache.org/licenses/LICENSE-2.0
+
+   开源项目 https://github.com/jones2000/HQChart
+ 
+   jones_2000@163.com
+
+   行情数据对接,使用东方财富网页数据做为案例的测试数据源
+   教程中所有的实例中使用的数据都来自互联网,或测试数据。仅用于学习HQChart图形使用. 教程禁止用于商业产品
+*/
+
+//import H5_HQChart from '@/uni_modules/jones-hqchart2/js_sdk/umychart.uniapp.h5.js'
+import store from '@/store';
+// #ifdef H5
 import HQChart from '@/uni_modules/jones-hqchart2/js_sdk/umychart.uniapp.h5.js';
+// HQChart.MARKET_SUFFIX_NAME.GetMarketStatus = function (symbol) {
+//     console.log("一直交易一直交易一直交易一直交易一直交易一直交易");
+
+//     return 2; //一直交易
+// }
 var MARKET_SUFFIX_NAME = HQChart.MARKET_SUFFIX_NAME;
 var JSChart = HQChart.JSChart;
+// #endif
 
-import astock from '@/api/system/astock';
+import { stockKlineApi } from '@/api/system/user';
+
+// #ifndef H5
+import { JSCommon } from '@/uni_modules/jones-hqchart2/js_sdk/umychart.wechat.3.0.js';
+import { MARKET_SUFFIX_NAME } from '@/uni_modules/jones-hqchart2/js_sdk/umychart.coordinatedata.wechat.js';
+import { JSCommonHQStyle } from '@/uni_modules/jones-hqchart2/js_sdk/umychart.style.wechat.js';
+import { head } from 'lodash';
+
+var JSChart = JSCommon.JSChart;
+// #endif
 
 function HQData() {}
 
-HQData.Explain = '';
+HQData.Explain = '东财财富网接口';
+
+//HQData.ChangeStyle = function () {
+//    // #ifdef H5
+//    var whiteStyle = HQChart.HQChartStyle.GetStyleConfig(HQChart.STYLE_TYPE_ID.WHITE_ID);
+//    // 自定义坐标轴文本颜色为黑色
+//    whiteStyle.FrameSplitTextColor = 'rgb(255, 255, 255)';
+//    HQChart.JSChart.SetStyle(whiteStyle);
+//    // #endif
+
+//    // #ifndef H5
+//    var whiteStyle = JSCommonHQStyle.GetStyleConfig(JSCommonHQStyle.STYLE_TYPE_ID.WHITE_ID);
+//    // 自定义坐标轴文本颜色为黑色
+//    whiteStyle.FrameSplitTextColor = 'rgb(255, 255, 255)';
+//    JSCommon.JSChart.SetStyle(whiteStyle);
+//    // #endif
+//};
 
 HQData.SetMinuteChartCoordinate = function () {
     MARKET_SUFFIX_NAME.IsShowAvPrice = upperSymbol => {
@@ -56,6 +103,227 @@ HQData.SetMinuteChartCoordinate = function () {
         return HQData.GetForeignExchangeData(upperSymbol, width);
     }; //替换X轴刻度信息
 
+    //期货
+    var chinaFutrues = JSChart.GetChinaFuturesTimeData();
+    chinaFutrues.AddNewFutures({
+        Suffix: '.SHF',
+        Symbol: 'WR',
+        Time: 9,
+        Decimal: 2,
+        Name: '线材',
+    }); //obj= { Suffix:后缀, Symbol:品种代码, Time:交易时间段, Decimal:小数位数, Name:名字 }
+    chinaFutrues.AddNewFutures({
+        Suffix: '.DCE',
+        Symbol: 'BB',
+        Time: 9,
+        Decimal: 2,
+        Name: '胶合板',
+    });
+    chinaFutrues.AddNewFutures({
+        Suffix: '.DCE',
+        Symbol: 'JD',
+        Time: 9,
+        Decimal: 2,
+        Name: '鸡蛋',
+    });
+    chinaFutrues.AddNewFutures({
+        Suffix: '.DCE',
+        Symbol: 'LH',
+        Time: 9,
+        Decimal: 2,
+        Name: '生猪',
+    });
+    chinaFutrues.AddNewFutures({
+        Suffix: '.CZC',
+        Symbol: 'WH',
+        Time: 9,
+        Decimal: 0,
+        Name: '强麦',
+    });
+    chinaFutrues.AddNewFutures({
+        Suffix: '.CZC',
+        Symbol: 'PM',
+        Time: 9,
+        Decimal: 0,
+        Name: '普麦',
+    });
+    chinaFutrues.AddNewFutures({
+        Suffix: '.CZC',
+        Symbol: 'RI',
+        Time: 9,
+        Decimal: 0,
+        Name: '早籼稻',
+    });
+    chinaFutrues.AddNewFutures({
+        Suffix: '.CZC',
+        Symbol: 'RS',
+        Time: 9,
+        Decimal: 0,
+        Name: '菜籽',
+    });
+    chinaFutrues.AddNewFutures({
+        Suffix: '.CZC',
+        Symbol: 'JR',
+        Time: 9,
+        Decimal: 0,
+        Name: '粳稻',
+    });
+    chinaFutrues.AddNewFutures({
+        Suffix: '.CZC',
+        Symbol: 'LR',
+        Time: 9,
+        Decimal: 0,
+        Name: '晚籼稻',
+    });
+    chinaFutrues.AddNewFutures({
+        Suffix: '.CZC',
+        Symbol: 'LR',
+        Time: 9,
+        Decimal: 0,
+        Name: '晚籼稻',
+    });
+    chinaFutrues.AddNewFutures({
+        Suffix: '.CZC',
+        Symbol: 'SM',
+        Time: 9,
+        Decimal: 0,
+        Name: '锰硅',
+    });
+    chinaFutrues.AddNewFutures({
+        Suffix: '.CZC',
+        Symbol: 'SF',
+        Time: 9,
+        Decimal: 0,
+        Name: '硅铁',
+    });
+    chinaFutrues.AddNewFutures({
+        Suffix: '.CZC',
+        Symbol: 'AP',
+        Time: 9,
+        Decimal: 0,
+        Name: '苹果',
+    });
+    chinaFutrues.AddNewFutures({
+        Suffix: '.CZC',
+        Symbol: 'CJ',
+        Time: 9,
+        Decimal: 0,
+        Name: '红枣',
+    });
+    chinaFutrues.AddNewFutures({
+        Suffix: '.CZC',
+        Symbol: 'UR',
+        Time: 9,
+        Decimal: 0,
+        Name: '尿素',
+    });
+    chinaFutrues.AddNewFutures({
+        Suffix: '.CZC',
+        Symbol: 'PK',
+        Time: 9,
+        Decimal: 0,
+        Name: '花生',
+    });
+
+    //芝加哥期货交易所
+    var futrues = JSChart.GetInternalTimeData('CBOTTimeData');
+    futrues.AddNewFutures({
+        Symbol: 'ZW',
+        Time: 3,
+        Decimal: 2,
+        Name: '小麦',
+    });
+    futrues.AddNewFutures({
+        Symbol: 'XW',
+        Time: 4,
+        Decimal: 2,
+        Name: '迷你小麦',
+    });
+    futrues.AddNewFutures({
+        Symbol: 'ZC',
+        Time: 3,
+        Decimal: 2,
+        Name: '玉米',
+    });
+    futrues.AddNewFutures({
+        Symbol: 'XC',
+        Time: 4,
+        Decimal: 2,
+        Name: '迷你玉米',
+    });
+    futrues.AddNewFutures({
+        Symbol: 'ZS',
+        Time: 3,
+        Decimal: 2,
+        Name: '大豆',
+    });
+    futrues.AddNewFutures({
+        Symbol: 'XK',
+        Time: 4,
+        Decimal: 2,
+        Name: '迷你大豆',
+    });
+    futrues.AddNewFutures({
+        Symbol: 'ZL',
+        Time: 3,
+        Decimal: 2,
+        Name: '豆油',
+    });
+    futrues.AddNewFutures({
+        Symbol: 'ZM',
+        Time: 3,
+        Decimal: 2,
+        Name: '豆粕',
+    });
+    futrues.AddNewFutures({
+        Symbol: 'ZO',
+        Time: 3,
+        Decimal: 2,
+        Name: '燕麦',
+    });
+    futrues.AddNewFutures({
+        Symbol: 'ZR',
+        Time: 3,
+        Decimal: 2,
+        Name: '稻谷',
+    });
+    futrues.AddNewFutures({
+        Symbol: 'ZL',
+        Time: 3,
+        Decimal: 2,
+        Name: '豆油',
+    });
+    futrues.AddNewFutures({
+        Symbol: 'NQ',
+        Time: 5,
+        Decimal: 2,
+        Name: '小型纳指',
+    });
+    futrues.AddNewFutures({
+        Symbol: 'ES',
+        Time: 5,
+        Decimal: 2,
+        Name: '小型标普',
+    });
+    futrues.AddNewFutures({
+        Symbol: 'YM',
+        Time: 5,
+        Decimal: 0,
+        Name: '小型道指',
+    });
+
+    //美国洲际交易所
+    var futrues = JSChart.GetInternalTimeData('IPETimeData');
+    var lIndex = futrues.TIME_SPLIT.length;
+    futrues.TIME_SPLIT[lIndex] = HQData.GetCustomTradeTimeData('IPE_G');
+    futrues.TIME_SPLIT2[lIndex] = HQData.GetCustomTradeTimeData('IPE_G_2');
+    futrues.AddNewFutures({
+        Symbol: 'G',
+        Time: lIndex,
+        Decimal: 0,
+        Name: '低硫柴油',
+    });
+
     //自定义类型
     JSChart.GetMinuteTimeStringData().GetET = upperSymbol => {
         return HQData.GetETTimeData(upperSymbol, JSChart.GetMinuteTimeStringData());
@@ -67,7 +335,7 @@ HQData.SetMinuteChartCoordinate = function () {
         return HQData.GetETDecimal(symbol);
     }; // 不同品种，使用不同小数位数
     MARKET_SUFFIX_NAME.IsETShowAvPrice = symbol => {
-        return true;
+        return false;
     }; //提示信息是否显示均线数值
     MARKET_SUFFIX_NAME.GetETMarketStatus = symbol => {
         return 2;
@@ -76,7 +344,6 @@ HQData.SetMinuteChartCoordinate = function () {
 
 HQData.NetworkFilter = function (data, callback, stockKline) {
     console.log(data, '=====================');
-    console.log(data.Name, '============data.Name=========');
 
     console.log(`[HQData::NetworkFilter]========================================== ${HQData.Explain}`, data);
 
@@ -112,6 +379,9 @@ HQData.NetworkFilter = function (data, callback, stockKline) {
 };
 
 HQData.StringToDateTime = function (strTime) {
+    //2021-08-16 10:00 => { Date:20210816， Time:1000 }
+    //console.log("时间122222222222222222222222", strTime);
+
     if (!strTime || typeof strTime !== 'string') {
         console.error('[HQData::StringToDateTime] Invalid input:', strTime);
         return {
@@ -130,7 +400,6 @@ HQData.StringToDateTime = function (strTime) {
     }
 
     var aryValue = aryData[0].split('-');
-    var date = parseInt(aryValue[0]) * 10000 + parseInt(aryValue[1]) * 100 + parseInt(aryValue[2]);
     if (aryValue.length < 3) {
         console.error('[HQData::StringToDateTime] Invalid date format:', aryData[0]);
         return {
@@ -145,7 +414,6 @@ HQData.StringToDateTime = function (strTime) {
     var date = year * 10000 + month * 100 + day;
 
     aryValue = aryData[1].split(':');
-    var time = parseInt(aryValue[0]) * 100 + parseInt(aryValue[1]);
     if (aryValue.length < 2) {
         console.error('[HQData::StringToDateTime] Invalid time format:', aryData[1]);
         return {
@@ -179,22 +447,18 @@ HQData.InvokeCallback = function (hqChartData, callback) {
 HQData.RequestMinuteData = function (data, callback) {
     data.PreventDefault = true;
     var symbol = data.Request.Data.symbol[0]; //请求的股票代码
-    var symbolUpper = symbol.toUpperCase();
+    var dayCount = data.Request.Data.daycount;
     console.log(`[HQData::RequestMinuteData] Symbol=${symbol}`);
-
     var obj = HQData.GetMinuteApiUrl(symbol, 1);
-
+    console.log('111111111111111111111111111111111111');
     wx.request({
         url: obj.Url,
         type: 'GET',
         success: function (recvData) {
-            HQData.RecvMinuteData(recvData, callback, {
+            HQData.RecvMinuteData(recvData.data, callback, {
                 Data: data,
                 Obj: obj,
             });
-        },
-        fail: function (error) {
-            console.error('[HQData::RequestMinuteData] Request failed:', error);
         },
     });
 };
@@ -501,11 +765,130 @@ HQData.GetInternalSymbol = function (
         Market: market,
         Symbol: internalSymbol,
     };
+    /*
+
+	if (HQChart.Chart.MARKET_SUFFIX_NAME.IsUSA(symbolUpper))    //美股
+	{
+	    var market= 105;
+	    var set106Market=new Set(
+	        ["RENN", "DIDI","BABA","ZH"]
+	    );
+	
+	    var set100Market=new Set
+	    (
+	        ["DJIA", "SPX", "NDX"]
+	    )
+	
+	    if (set106Market.has(aryData[0])) market=106;
+	    else if (set100Market.has(aryData[0])) market=100;
+	
+	    return { Market:market, Symbol:aryData[0].toUpperCase() };
+	}
+	else if (HQChart.Chart.MARKET_SUFFIX_NAME.IsSZ(symbolUpper))
+	{
+	    return { Market:0, Symbol:aryData[0] };
+	}
+	else if (HQChart.Chart.MARKET_SUFFIX_NAME.IsSH(symbolUpper))
+	{
+	    return { Market:1, Symbol:aryData[0] };
+	}
+	else if (HQChart.Chart.MARKET_SUFFIX_NAME.IsHK(symbolUpper))    //港股
+	{
+	    var market=116;
+
+	    var set100Market=new Set
+	    (
+	        ["HSI"]
+	    );
+	    if (set100Market.has(aryData[0])) market=100;
+
+	    return { Market:market, Symbol:aryData[0] };
+	}
+	else if (HQChart.Chart.MARKET_SUFFIX_NAME.IsForeignExchange(symbolUpper))   //外汇
+	{
+	    var market=119;
+	    return { Market:market, Symbol:aryData[0] };
+	}
+	else if (HQChart.Chart.MARKET_SUFFIX_NAME.IsSHFE(symbolUpper))
+	{
+	    var market=113;
+
+	    //上期能源
+	    if (symbolUpper.indexOf("SC")==0 || symbolUpper.indexOf("NR")==0 || 
+	        symbolUpper.indexOf("LU")==0 ||symbolUpper.indexOf("BC")==0) 
+	        market=142;
+
+	    return { Market:market, Symbol:aryData[0] };
+	}
+	else if (HQChart.Chart.MARKET_SUFFIX_NAME.IsDCE(symbolUpper))
+	{
+	    var market=114;
+	    return { Market:market, Symbol:aryData[0] };
+	}
+	else if (HQChart.Chart.MARKET_SUFFIX_NAME.IsCZCE(symbolUpper))
+	{
+	    var market=115;
+	    return { Market:market, Symbol:aryData[0] };
+	}
+	else if (HQChart.Chart.MARKET_SUFFIX_NAME.IsCFFEX(symbolUpper))
+	{
+	    var market=8;
+	    var arySymbol=aryData[0].split('_');
+	    return { Market:market, Symbol:arySymbol[1] };
+	}
+	else if (HQChart.Chart.MARKET_SUFFIX_NAME.IsCBOT(symbolUpper))
+	{
+	    var market=103;
+	    return { Market:market, Symbol:aryData[0] };
+	}
+	else if (HQChart.Chart.MARKET_SUFFIX_NAME.IsNYMEX(symbolUpper))
+	{
+	    var market=102;
+	    return { Market:market, Symbol:aryData[0] };
+	}
+	else if (HQChart.Chart.MARKET_SUFFIX_NAME.IsCOMEX(symbolUpper))
+	{
+	    var market=101;
+	    return { Market:market, Symbol:aryData[0] };
+	}
+	else if (HQChart.Chart.MARKET_SUFFIX_NAME.IsNYBOT(symbolUpper))
+	{
+	    var market=108;
+	    return { Market:market, Symbol:aryData[0] };
+	}
+	else if (HQChart.Chart.MARKET_SUFFIX_NAME.IsLME(symbolUpper))
+	{
+	    var market=109;
+	    var arySymbol=aryData[0].split('_');
+	    return { Market:market, Symbol:arySymbol[1] };
+	}
+	else if (HQChart.Chart.MARKET_SUFFIX_NAME.IsTOCOM(symbolUpper))
+	{
+	    var market=111;
+	    return { Market:market, Symbol:aryData[0] };
+	}
+	else if (HQChart.Chart.MARKET_SUFFIX_NAME.IsIPE(symbolUpper))
+	{
+	    var market=112;
+	    return { Market:market, Symbol:aryData[0] };
+	}
+	else if (HQChart.Chart.MARKET_SUFFIX_NAME.IsET(symbolUpper))
+	{
+	    var market=100;
+	    var set100Market=new Set
+	    (
+	        ["UDI"]
+	    );
+	    if (set100Market.has(aryData[0])) market=100;
+
+	    return { Market:market, Symbol:aryData[0] };
+	}
+	*/
 };
 
 HQData.GetMinuteApiUrl = function (symbol, dayCount) {
     var internalSymbol = HQData.GetInternalSymbol(symbol);
-
+    //var url=`http://push2his.eastmoney.com/api/qt/stock/trends2/get?fields1=f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13&fields2=f51,f52,f53,f54,f55,f56,f57,f58&secid=${internalSymbol.Market}.${internalSymbol.Symbol}&ndays=1&iscr=0&iscca=0`
     var url = `https://push2his.eastmoney.com/api/qt/stock/trends2/get?fields1=f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13&fields2=f51,f52,f53,f54,f55,f56,f57,f58&secid=${internalSymbol.Market}.${internalSymbol.Symbol}&ndays=${dayCount}&iscr=0&iscca=0`;
 
     return {
@@ -1133,9 +1516,9 @@ HQData.GetKLineApiUrl = function (symbol, period, right, option) {
 
     if (option && option.Update == true) {
         var beginDate = option.End;
-        var url = 'https://server.88xx99.xyz' + `/api/market/stockKline?stock_id=5390&type=1day`;
+        var url = store.state.user.baseurlStore + `/api/market/stockKline?stock_id=5390&type=1h`;
     } else {
-        var url = 'https://server.88xx99.xyz' + `/api/market/stockKline?stock_id=5390&type=1day`;
+        var url = store.state.user.baseurlStore + `/api/market/stockKline?stock_id=5390&type=1h`;
     }
 
     return {
@@ -1148,12 +1531,19 @@ HQData.GetKLineApiUrl = function (symbol, period, right, option) {
 };
 
 HQData.GetMinuteKLineApiUrl = function (symbol, period, right, option) {
+    //https://push2his.eastmoney.com/api/qt/stock/kline/get?fields1=f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13&fields2=f51,f52,f53,f54,f55,f56,f57,f58,f59,f60,f61&beg=0&end=20500101&ut=fa5fd1943c7b386f172d6893dbfba10b&rtntype=6&secid=0.300059&klt=101&fqt=0
+
     var internalSymbol = HQData.GetInternalSymbol(symbol);
+    var internalPeriod = HQData.GetInternalPeriod(period);
+    var internalRight = HQData.GetInternalRight(right);
+    console.log('asdasdasssssssssssssssssssssss', period);
 
     if (option && option.Update == true) {
-        var url = 'https://server.88xx99.xyz';
+        var beginDate = option.End;
+
+        var url = store.state.user.baseurlStore + `/api/market/stockKline?stock_id=5390&type=1h`;
     } else {
-        var url = 'https://server.88xx99.xyz';
+        var url = store.state.user.baseurlStore + `/api/market/stockKline?stock_id=5390&type=1h`;
     }
 
     return {
@@ -1171,7 +1561,7 @@ HQData.GetInternalPeriod = function (periodID) {
         [1, 102], //week
         [2, 103], //month
 
-        [4, 1], //1day
+        [4, 1], //1min
         [5, 5], //5min
         [6, 15], //15min
         [7, 30], //30min
@@ -1225,15 +1615,16 @@ HQData.RequestFlowCapitalData = function (data, callback) {
     }
 };
 
-HQData.RequestHistoryData = async function (data, callback, stock_id) {
+HQData.RequestHistoryData = function (data, callback, stock_id) {
     data.PreventDefault = true;
     var symbol = data.Request.Data.symbol; //请求的股票代码
     var period = data.Self.Period; //周期
     var right = data.Self.Right; //复权
 
-    console.log(`[HQData::RequestHistoryData] Symbol=${symbol}, Period=${period}`);
+    console.log(`[HQData::RequestHistoryData] Symbol=${symbol}`);
     var obj = HQData.GetKLineApiUrl(symbol, period, right, null);
-
+    let datas = uni.getStorageSync('storage_data');
+    // console.log("333333333333333333333333333333333333333", store.state.user.stockKline);
     //拼接请求参数
     let params = {
         stock_id: stock_id,
@@ -1249,9 +1640,6 @@ HQData.RequestHistoryData = async function (data, callback, stock_id) {
         case 2:
             params.type = '1month';
             break;
-        case 4:
-            params.type = '1min';
-            break;
         case 5:
             params.type = '5min';
             break;
@@ -1259,12 +1647,29 @@ HQData.RequestHistoryData = async function (data, callback, stock_id) {
             params.type = '1day';
             break;
     }
+    // console.log("333333333333333333333333333333333333333", stockKline, data.Self.Period, callback,);
+    stockKlineApi(params).then(recvData => {
+        // console.log("333333333333333333333333333333333333333", store.state.user.stockKline);
+        console.log(obj, '333333333333333333333333333333333333333');
 
-    const r = await astock.stockKlineApi({ stock_id: stock_id || '5730', type: params.type });
-    HQData.RecvHistoryData(r, callback, {
-        Data: data,
-        Obj: obj,
+        HQData.RecvHistoryData(recvData.data, callback, {
+            Data: data,
+            Obj: obj,
+        });
     });
+
+    // if (res.code == 1) {
+    //     this.list = res.data
+    // }
+    // wx.request(
+    //     {
+    //         url: obj.Url,
+    //         type: "GET",
+    //         success: function (recvData) {
+    //             console.log("333333333333333333333333333333333333333");
+    //             HQData.RecvHistoryData(recvData.data, callback, { Data: data, Obj: obj });
+    //         }
+    //     });
 };
 
 HQData.RecvHistoryData = function (recvData, callback, option) {
@@ -1297,8 +1702,7 @@ HQData.RecvHistoryData = function (recvData, callback, option) {
 
         yClose = close;
     }
-    console.log(option.Data.Self.IsDestroy, '00000099999======');
-    HQData.InvokeCallback(hqChartData, callback);
+
     if (option.Data.Self.IsDestroy == false) {
         //console.log("[HQData.RecvHistoryData] hqchartData ", hqChartData);
 
@@ -1325,23 +1729,20 @@ HQData.RequestRealtimeData = function (data, callback, stock_id) {
         type: '',
     };
     switch (period) {
-        case 0:
-            params.type = '1day';
-            break;
-        case 1:
-            params.type = '1week';
-            break;
-        case 2:
-            params.type = '1month';
-            break;
-        case 4:
-            params.type = '1min';
-            break;
         case 5:
             params.type = '5min';
             break;
+        case 6:
+            params.type = '15min';
+            break;
+        case 7:
+            params.type = '30min';
+            break;
+        case 8:
+            params.type = '1h';
+            break;
         default:
-            params.type = '1day';
+            params.type = '5min';
             break;
     }
     console.log('4444444444444444444444444444444441111111111111111111111111111111111');
@@ -1406,7 +1807,7 @@ HQData.RecvRealtimeData = function (recvData, callback, option) {
     }
 };
 
-HQData.RequestHistoryMinuteData = async function (data, callback, stock_id) {
+HQData.RequestHistoryMinuteData = function (data, callback, stock_id) {
     data.PreventDefault = true;
     var symbol = data.Request.Data.symbol; //请求的股票代码
     var period = data.Self.Period; //周期
@@ -1420,29 +1821,33 @@ HQData.RequestHistoryMinuteData = async function (data, callback, stock_id) {
         type: '',
     };
     switch (period) {
-        case 0:
-            params.type = '1day';
-            break;
-        case 1:
-            params.type = '1week';
-            break;
-        case 2:
-            params.type = '1month';
-            break;
         case 4:
             params.type = '1min';
             break;
         case 5:
             params.type = '5min';
             break;
+        case 6:
+            params.type = '15min';
+            break;
+        case 7:
+            params.type = '30min';
+            break;
+        case 8:
+            params.type = '1h';
+            break;
         default:
-            params.type = '1day';
+            params.type = '5min';
             break;
     }
-    const r = await astock.stockKlineApi({ stock_id: stock_id || '5730', type: params.type });
-    HQData.RecvHistoryData(r, callback, {
-        Data: data,
-        Obj: obj,
+    stockKlineApi(params).then(recvData => {
+        console.log(recvData.data, 'recvDatarecvDatarecvDatarecvData');
+        console.log(data, 'recvDatarecvDatarecvDatarecvData=======');
+
+        HQData.RecvHistoryMinuteData(recvData.data, callback, {
+            Data: data,
+            Obj: obj,
+        });
     });
     // wx.request(
     //     {
@@ -1505,7 +1910,7 @@ HQData.RecvHistoryMinuteData = function (recvData, callback, option) {
     }
 };
 
-HQData.RequestMinuteRealtimeData = async function (data, callback, stock_id) {
+HQData.RequestMinuteRealtimeData = function (data, callback, stock_id) {
     data.PreventDefault = true;
     var symbol = data.Request.Data.symbol[0]; //请求的股票代码
     var period = data.Self.Period; //周期
@@ -1544,10 +1949,13 @@ HQData.RequestMinuteRealtimeData = async function (data, callback, stock_id) {
             params.type = '1day';
             break;
     }
-    const r = await astock.stockKlineApi({ stock_id: stock_id || '5730', type: params.type });
-    HQData.RecvHistoryData(r, callback, {
-        Data: data,
-        Obj: obj,
+    console.log('333333333333333333333333333333333333333111111111111111111111111');
+    stockKlineApi(params).then(recvData => {
+        console.log('333333333333333333333333333333333333333', store.state.user.stockKline);
+        HQData.RecvMinuteRealtimeData(recvData.data, callback, {
+            Data: data,
+            Obj: obj,
+        });
     });
     // wx.request(
     //     {
@@ -1712,6 +2120,8 @@ HQData.RecvSymbolData_Minute = function (
     HQData.InvokeCallback(hqChartData, callback);
 };
 
-export const EastMoney = {
-    HQData: HQData,
+module.exports = {
+    EastMoney: {
+        HQData: HQData,
+    },
 };

@@ -154,32 +154,10 @@
                                 <text class="detail-label">持仓数量</text>
                                 <text class="detail-value">{{ `${item.buy_number}股` }}</text>
                             </view>
-                            <view class="detail-row" v-if="item.buy_current_price">
-                                <text class="detail-label">买入现价</text>
-                                <text class="detail-value">{{ item.buy_current_price }}</text>
-                            </view>
-                            <view class="detail-row" v-if="item.sell_current_price">
-                                <text class="detail-label">{{
-                                    (currentNav[0] == 1 && currentNav[1] == 1) ||
-                                    (currentNav[0] == 1 && currentNav[1] == 2) ||
-                                    (currentNav[0] == 1 && currentNav[1] == 3) ||
-                                    (currentNav[0] == 2 && currentNav[1] == 1)
-                                        ? '卖出现价'
-                                        : '现价'
-                                }}</text>
-                                <text class="detail-value">{{ item.sell_current_price }}</text>
-                            </view>
+
                             <view class="detail-row" v-if="item.allocation_price">
                                 <text class="detail-label">配售价</text>
                                 <text class="detail-value">{{ item.allocation_price }}</text>
-                            </view>
-                            <view class="detail-row" v-if="item.phase_money">
-                                <text class="detail-label">总盈亏</text>
-                                <text class="detail-value" :class="item.phase_money && item.phase_money.toString().includes('-') ? 'status-paid' : 'status-all'">{{ item.phase_money }}</text>
-                            </view>
-                            <view class="detail-row" v-if="item.phase_pre">
-                                <text class="detail-label">盈亏比例</text>
-                                <text class="detail-value" :class="item.phase_pre && item.phase_pre.toString().includes('-') ? 'status-paid' : 'status-all'">{{ `${item.phase_pre}%` }}</text>
                             </view>
                             <view class="detail-row" v-if="item.purchase_time">
                                 <text class="detail-label">申购时间</text>
@@ -194,7 +172,7 @@
                                 <text class="detail-value">{{ item.purchase_count }}</text>
                             </view>
                             <view class="detail-row" v-if="item.subscribe_number">
-                                <text class="detail-label">申购股数</text>
+                                <text class="detail-label">{{ currentNav[0] == 0 && currentNav[1] == 1 ? '认购股数' : '申购股数' }}</text>
                                 <text class="detail-value">{{ item.subscribe_number }}</text>
                             </view>
                             <view class="detail-row" v-if="item.win_time">
@@ -233,8 +211,34 @@
                                 <text class="detail-label">卖出印花税</text>
                                 <text class="detail-value">{{ item.stamp_duty }}</text>
                             </view>
+                            <view class="detail-row" v-if="item.buy_current_price">
+                                <text class="detail-label">买入现价</text>
+                                <text class="detail-value">{{ item.buy_current_price }}</text>
+                            </view>
+                            <view class="detail-row" v-if="item.sell_current_price">
+                                <text class="detail-label">{{
+                                    (currentNav[0] == 1 && currentNav[1] == 1) ||
+                                    (currentNav[0] == 1 && currentNav[1] == 2) ||
+                                    (currentNav[0] == 1 && currentNav[1] == 3) ||
+                                    (currentNav[0] == 2 && currentNav[1] == 1)
+                                        ? '卖出现价'
+                                        : '现价'
+                                }}</text>
+                                <text class="detail-value">{{ item.sell_current_price }}</text>
+                            </view>
+                            <view class="detail-row" v-if="item.phase_money">
+                                <text class="detail-label">总盈亏</text>
+                                <text class="detail-value" :class="item.phase_money && item.phase_money.toString().includes('-') ? 'status-paid' : 'status-all'">{{ item.phase_money }}</text>
+                            </view>
+                            <view class="detail-row" v-if="item.phase_pre">
+                                <text class="detail-label">盈亏比例</text>
+                                <text class="detail-value" :class="item.phase_pre && item.phase_pre.toString().includes('-') ? 'status-paid' : 'status-all'">{{ `${item.phase_pre}%` }}</text>
+                            </view>
                         </view>
                         <view class="record-action">
+                            <text style="font-size: 22rpx; color: #999; display: flex; align-items: center; position: absolute; left: 0; top: 60%; transform: translateY(-50%)">
+                                {{ item.already_time }}
+                            </text>
                             <view class="action-btn" @click="viewOrderDetail(item)">
                                 <text>订单详情</text>
                             </view>
@@ -375,7 +379,7 @@ export default {
                     case '0':
                         return '认购中';
                     case '1':
-                        return '已中签';
+                        return '认购成功';
 
                     case '3':
                         return '已平仓';
@@ -560,8 +564,7 @@ export default {
                     name: item?.stock_name,
                     exchange: item?.exchange,
                     symbol: item?.symbol,
-                    paid_amount: item?.award_number,
-                    buy_current_price: item?.sell_current_price,
+                    paid_amount: item?.already_price,
                     payable_amount: item?.payable_amount,
                     sell_current_price: item?.sell_current_price,
                     subscribe_number: item?.subscribe_number,
@@ -580,7 +583,9 @@ export default {
                     buyback_amount: item?.buyback_amount,
                     stamp_duty: item?.stamp_duty,
                     order_status: item?.order_status,
-                    already_price: item?.already_price,
+                    already_price: item?.should_price,
+                    already_time: item?.already_time,
+
                     id: item?.id,
                 }));
                 this.total = r.total;
@@ -963,6 +968,8 @@ page {
     //background-color: #fff;
     border-radius: 20rpx;
     position: fixed;
+    top: 0;
+    z-index: 1000;
 
     .left-menu {
         padding: 0 20rpx;
@@ -1275,6 +1282,7 @@ page {
                 justify-content: flex-end;
                 padding-top: 20rpx;
                 border-top: 1px solid #f5f5f5;
+                position: relative;
 
                 .action-btn {
                     padding: 20rpx 50rpx;
